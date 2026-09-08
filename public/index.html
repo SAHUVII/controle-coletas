@@ -4,17 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle de Coletas — Frota</title>
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<meta name="theme-color" content="#10131a">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Coletas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#10131a;
@@ -187,10 +179,129 @@
 
   .empty-state{padding:60px 20px;text-align:center;color:var(--text-muted);}
 
+  /* Abas */
+  .tabs{display:flex;gap:6px;padding:0 32px;border-bottom:1px solid var(--border);}
+  .tab-btn{
+    background:transparent;color:var(--text-muted);border:none;border-bottom:2px solid transparent;
+    padding:14px 6px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;
+    margin-right:20px;transition:color .15s ease, border-color .15s ease;
+  }
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .view-wrap{padding:24px 32px 48px;}
+  .coletas-chart-wrap{padding:20px 32px 4px;}
+  .panel{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:20px 22px;margin-bottom:20px;
+  }
+  .panel h2{font-size:15px;margin:0 0 4px;font-weight:700;}
+  .panel .panel-sub{font-size:12.5px;color:var(--text-muted);margin:0 0 16px;}
+  .chart-box{position:relative;height:320px;}
+
+  /* Tabela editável genérica (ISP) */
+  .mini-table{width:100%;border-collapse:collapse;}
+  .mini-table th{
+    text-align:left;font-size:12px;color:var(--text-muted);font-weight:600;
+    padding:6px 8px;border-bottom:1px solid var(--border);
+  }
+  .mini-table td{padding:6px 8px;border-bottom:1px solid var(--border);}
+  .mini-table input{
+    width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:7px 9px;border-radius:6px;font-family:inherit;font-size:13.5px;
+  }
+  .mini-table input[type=number]{width:90px;}
+  .mini-table .col-acao{width:40px;text-align:center;}
+
+  .add-linha-form{display:flex;gap:8px;align-items:flex-end;margin-top:14px;flex-wrap:wrap;}
+  .add-linha-form .campo{display:flex;flex-direction:column;gap:4px;}
+  .add-linha-form label{font-size:11.5px;color:var(--text-muted);}
+  .add-linha-form input{
+    background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:8px 10px;border-radius:6px;font-family:inherit;font-size:13.5px;
+  }
+  .add-linha-form input[name=quantidade]{width:100px;}
+
+  /* Checklist de inspeção de câmera */
+  .insp-categoria{margin-bottom:18px;}
+  .insp-categoria:last-child{margin-bottom:0;}
+  .insp-titulo{
+    background:var(--surface-2);color:var(--text);font-weight:700;font-size:13px;
+    padding:8px 12px;border-radius:8px 8px 0 0;border:1px solid var(--border);border-bottom:none;
+  }
+  .insp-locais{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+    border:1px solid var(--border);border-radius:0 0 8px 8px;overflow:hidden;
+  }
+  .insp-local{padding:12px;border-right:1px solid var(--border);}
+  .insp-local:last-child{border-right:none;}
+  .insp-local-topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .insp-local-nome{font-size:12.5px;color:var(--text-muted);font-weight:600;}
+  .insp-meta-input{
+    width:42px;background:var(--bg);border:1px solid var(--border);color:var(--text-muted);
+    padding:3px 4px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:center;
+  }
+  .insp-boxes{display:flex;gap:6px;flex-wrap:wrap;}
+  .insp-box{
+    width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg);
+    color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .insp-box:hover{border-color:var(--accent);}
+  .insp-box.feito{background:var(--accent);color:#1a1204;border-color:var(--accent);}
+
+  .obs-box textarea{
+    width:100%;min-height:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:10px 12px;border-radius:8px;font-family:inherit;font-size:13.5px;resize:vertical;
+  }
+
+  .meses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+  .mes-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+  .mes-card .mes-nome{font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:8px;}
+  .mes-card .campo-linha{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px;}
+  .mes-card .campo-linha:last-child{margin-bottom:0;}
+  .mes-card label{font-size:11.5px;color:var(--text-muted);}
+  .mes-card input{
+    width:64px;background:var(--surface);border:1px solid var(--border);color:var(--text);
+    padding:5px 6px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:center;
+  }
+
+  /* Tratativas */
+  .trat-form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;}
+  .trat-form .campo{display:flex;flex-direction:column;gap:5px;min-width:150px;}
+  .trat-form .campo-larga{flex:2;min-width:260px;}
+  .campo label{font-size:11.5px;color:var(--text-muted);font-weight:600;}
+  .campo input, .campo select, .campo textarea{
+    background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:9px 10px;border-radius:7px;font-family:inherit;font-size:13.5px;
+  }
+  .campo textarea{min-height:60px;resize:vertical;width:100%;}
+  .campo-full{display:flex;flex-direction:column;gap:5px;}
+
+  .grav-badge{
+    display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;
+    margin-right:6px;vertical-align:middle;
+  }
+  .grav-badge.GRAVISSIMA{background:rgba(239,91,91,.18);color:var(--danger);}
+  .grav-badge.GRAVE{background:rgba(232,163,61,.18);color:var(--warn);}
+  .grav-badge.LEVE{background:rgba(76,158,235,.18);color:#4c9eeb;}
+
+  .norma-cell{font-size:13px;}
+  .norma-cell .cod{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--accent);}
+  .norma-cell .desc{color:var(--text-muted);display:block;font-size:12px;margin-top:2px;max-width:320px;}
+
   @media (max-width:720px){
     .stats{grid-template-columns:repeat(2,1fr);}
     .topbar{flex-direction:column;align-items:flex-start;gap:14px;}
     .filters .prazo{margin-left:0;}
+  }
+
+  .aviso-salvar{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--danger); color:#fff; padding:11px 18px; border-radius:9px;
+    font-size:13.5px; font-weight:600; z-index:5000; box-shadow:0 8px 24px rgba(0,0,0,.4);
+    max-width:90vw; text-align:center;
   }
 </style>
 </head>
@@ -211,7 +322,25 @@
   </div>
 </div>
 
+<div class="tabs">
+  <button class="tab-btn active" data-tab="coletas">Coletas</button>
+  <button class="tab-btn" data-tab="isp">ISP Virtual por Processo</button>
+  <button class="tab-btn" data-tab="inspecao">Inspeção de Câmera</button>
+  <button class="tab-btn" data-tab="tratativas">Tratativas</button>
+</div>
+
+<div id="view-coletas">
 <div class="stats" id="stats"></div>
+
+<div class="coletas-chart-wrap">
+  <div class="panel">
+    <h2>Distribuição por status</h2>
+    <p class="panel-sub">Proporção de veículos em cada situação.</p>
+    <div class="chart-box" style="height:260px;max-width:420px;margin:0 auto;">
+      <canvas id="chartStatusPizza"></canvas>
+    </div>
+  </div>
+</div>
 
 <div class="filters">
   <input type="text" id="fBusca" placeholder="Buscar por placa, frota ou processo...">
@@ -244,8 +373,123 @@
     <div id="rows"></div>
   </div>
 </div>
+</div>
+
+<div id="view-isp" class="view-wrap" style="display:none">
+  <div class="panel">
+    <h2>ISP Virtual por Processo</h2>
+    <p class="panel-sub">Lançamentos mensais de inspeções feitas, por processo.</p>
+    <div class="chart-box"><canvas id="chartIsp"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <h2>Lançamentos</h2>
+    <p class="panel-sub">Mês, processo e quantidade. Edite ou remova a qualquer momento.</p>
+    <table class="mini-table">
+      <thead><tr><th>Mês</th><th>Processo</th><th>Quantidade</th><th class="col-acao"></th></tr></thead>
+      <tbody id="ispLinhas"></tbody>
+    </table>
+    <div class="add-linha-form">
+      <div class="campo">
+        <label>Mês</label>
+        <input type="text" id="ispNovoMes" placeholder="ex.: agosto">
+      </div>
+      <div class="campo">
+        <label>Processo</label>
+        <input type="text" id="ispNovoProcesso" placeholder="ex.: CONSTRUÇÃO">
+      </div>
+      <div class="campo">
+        <label>Quantidade</label>
+        <input type="number" name="quantidade" id="ispNovaQtd" min="0" value="1">
+      </div>
+      <button class="btn btn-accent" id="btnIspAdd">+ Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div id="view-inspecao" class="view-wrap" style="display:none">
+  <div class="panel">
+    <h2>Inspeção de Câmera</h2>
+    <p class="panel-sub">Marque o progresso de cada meta clicando nos números.</p>
+    <div id="inspChecklist"></div>
+  </div>
+
+  <div class="panel obs-box">
+    <h2>Observação</h2>
+    <textarea id="inspObs" placeholder="Escreva uma observação..."></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>Gravações — CEMIG</h2>
+    <p class="panel-sub">Meta x entrega, por mês. <input type="text" id="gravAno" class="insp-meta-input" style="width:64px" placeholder="ano"></p>
+    <div class="chart-box"><canvas id="chartGravacoes"></canvas></div>
+    <div class="meses-grid" id="gravMeses"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Evolução ClickSegurança — Solicitação</h2>
+    <p class="panel-sub">Aumento, diminuição e total, por mês.</p>
+    <div class="chart-box"><canvas id="chartClickSeg"></canvas></div>
+    <div class="meses-grid" id="clickMeses"></div>
+  </div>
+</div>
+
+<div id="view-tratativas" class="view-wrap" style="display:none">
+  <div class="panel">
+    <h2>Nova tratativa</h2>
+    <p class="panel-sub">Associe uma placa a uma não conformidade encontrada em uma inspeção.</p>
+    <div class="trat-form">
+      <div class="campo">
+        <label>Placa</label>
+        <input type="text" id="tratPlaca" list="tratPlacasExistentes" placeholder="ex.: HEF2572">
+        <datalist id="tratPlacasExistentes"></datalist>
+      </div>
+      <div class="campo">
+        <label>Frota</label>
+        <input type="text" id="tratFrota" placeholder="ex.: 5818">
+      </div>
+      <div class="campo">
+        <label>Tipo de inspeção</label>
+        <select id="tratTipo"></select>
+      </div>
+      <div class="campo campo-larga">
+        <label>Não conformidade</label>
+        <select id="tratNorma"></select>
+      </div>
+      <div class="campo">
+        <label>Data</label>
+        <input type="date" id="tratData">
+      </div>
+    </div>
+    <div class="campo campo-full" style="margin-top:10px;">
+      <label>Observação</label>
+      <textarea id="tratObsNova" placeholder="Descreva a tratativa..."></textarea>
+    </div>
+    <button class="btn btn-accent" id="btnTratAdd" style="margin-top:12px;">+ Adicionar tratativa</button>
+  </div>
+
+  <div class="panel">
+    <h2>Recorrência por equipe</h2>
+    <p class="panel-sub">Escolha uma não conformidade para ver quais frotas mais se repetem.</p>
+    <div class="campo" style="max-width:420px;margin-bottom:14px;">
+      <label>Não conformidade</label>
+      <select id="tratFiltroNorma"><option value="">Todas as tratativas</option></select>
+    </div>
+    <div class="chart-box"><canvas id="chartTratativas"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <h2>Tratativas lançadas</h2>
+    <table class="mini-table">
+      <thead><tr><th>Placa</th><th>Frota</th><th>Tipo</th><th>Não conformidade</th><th>Data</th><th>Observação</th><th class="col-acao"></th></tr></thead>
+      <tbody id="tratLinhas"></tbody>
+    </table>
+  </div>
+</div>
 
 <div id="popoverLayer"></div>
+
+<div id="avisoSalvamento" class="aviso-salvar" style="display:none;"></div>
 
 <script>
 const DEFAULT_VEHICLES = [
@@ -269,6 +513,466 @@ const DEFAULT_VEHICLES = [
   ["UBF9J73","9741","MANUTENÇÃO"],["UHW4H82","4732","MANUTENÇÃO"],["UHW5B72","NÃO INFORMADA","QUARTETO"]
 ].map(([placa,frota,processo],i)=>({id:'v'+i, placa, frota, processo}));
 
+/* ===================== BASE DE NORMAS (TRATATIVAS) ===================== */
+const NORMAS_VEICULO = [
+  {codigo:"VGV01",descricao:"Veículo com danos evidentes no sistema de freios e direção/suspensão, colocando em risco a segurança própria, da equipe ou de terceiros.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV02",descricao:"Veículo com pneus sem condições de uso.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV06",descricao:"Sistema hidráulico, mangueiras ou válvula de segurança do equipamento de guindar não estão em perfeitas condições ou apresentam vazamentos que comprometam a segurança.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV07",descricao:"A cesta/cesto não possui ponto de ancoragem para cinto de segurança tipo paraquedista.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV09",descricao:"Dispositivo de parada de emergência inoperante ou não localizado junto aos comandos.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV10",descricao:"Falta válvula de retenção nos cilindros hidráulicos das sapatas estabilizadoras e válvulas de retenção/contrabalanço no braço móvel.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV12",descricao:"A cesta/cesto não está dotada de cuba isolante (liner).",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV13",descricao:"A cesta/cesto não está dotada de sistema que impeça a operação das sapatas sem o prévio recolhimento do braço móvel.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV14",descricao:"Grau de isolamento do equipamento ou caçamba não é adequado para serviços em linhas/redes energizadas ou com possibilidade de energização acidental.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV15",descricao:"A plataforma de trabalho não oferece posicionamento seguro do operador em relação ao contato com o solo.",gravidade:"GRAVISSIMA"},
+  {codigo:"VGV16",descricao:"O equipamento não possui sistema limitador do momento de carga com alerta visual/sonoro que impeça movimento acima da capacidade máxima.",gravidade:"GRAVISSIMA"},
+  {codigo:"VG01",descricao:"Veículo faltando parafuso na roda.",gravidade:"GRAVE"},
+  {codigo:"VG02",descricao:"Veículo em mau estado de conservação comprometendo a segurança.",gravidade:"GRAVE"},
+  {codigo:"VG03",descricao:"Ponto de aterramento do veículo não interligado ao chassi.",gravidade:"GRAVE"},
+  {codigo:"VG04",descricao:"Veículo sem pontos de amarração de carga para transporte, ou pontos irregulares/sem condições de uso.",gravidade:"GRAVE"},
+  {codigo:"VG05",descricao:"Retrovisor(es) sem condição(ões) de uso.",gravidade:"GRAVE"},
+  {codigo:"VG06",descricao:"Veículo com vazamentos.",gravidade:"GRAVE"},
+  {codigo:"VG07",descricao:"Mata-cachorro despadronizado ou em mau estado de conservação/instalação.",gravidade:"GRAVE"},
+  {codigo:"VG10",descricao:"Cinto de segurança inexistente ou sem condição de uso.",gravidade:"GRAVE"},
+  {codigo:"VG11",descricao:"Cabine auxiliar em desacordo com a legislação de trânsito e a documentação do veículo.",gravidade:"GRAVE"},
+  {codigo:"VG12",descricao:"Não possuir compartimentos fixos e fechados (com travas) na cabine auxiliar para materiais/ferramentas/equipamentos.",gravidade:"GRAVE"},
+  {codigo:"VG15",descricao:"Controles da cesta aérea/cesto acoplado não claramente identificados quanto às funções ou não protegidos contra uso inadvertido.",gravidade:"GRAVE"},
+  {codigo:"VG16",descricao:"Cesta/cesto sem controles de movimentação (superior e inferior) que retornem à posição neutra.",gravidade:"GRAVE"},
+  {codigo:"VG17",descricao:"Falta nos controles superiores dispositivo de travamento de segurança contra atuação inadvertida.",gravidade:"GRAVE"},
+  {codigo:"VG18",descricao:"Controles inferiores não acessíveis, ou não prevalecem sobre o controle superior de movimentação.",gravidade:"GRAVE"},
+  {codigo:"VG19",descricao:"Falta sistema estabilizador com indicação de inclinação visível durante a operação.",gravidade:"GRAVE"},
+  {codigo:"VG20",descricao:"Alavancas dos estabilizadores não protegidas contra uso inadvertido ou não retornam à posição neutra.",gravidade:"GRAVE"},
+  {codigo:"VG21",descricao:"Falta válvula seletora nos controles dos estabilizadores para bloquear/liberar movimentação da cesta.",gravidade:"GRAVE"},
+  {codigo:"VG22",descricao:"Cesta/cesto sem recurso de operação de emergência em caso de ruptura de mangueiras hidráulicas.",gravidade:"GRAVE"},
+  {codigo:"VG23",descricao:"Cesta/cesto sem sistema de nivelamento ativo e automático da caçamba.",gravidade:"GRAVE"},
+  {codigo:"VG24",descricao:"Equipamentos com duas caçambas sem controles superiores ao alcance do operador sem desengatar o cinto.",gravidade:"GRAVE"},
+  {codigo:"VG26",descricao:"Laudos do equipamento não disponíveis no veículo e/ou não atendem normas/procedimentos vigentes.",gravidade:"GRAVE"},
+  {codigo:"VG27",descricao:"Falta válvula/chave seletora nos estabilizadores para bloquear operação ou liberar comandos do guindar.",gravidade:"GRAVE"},
+  {codigo:"VG28",descricao:"Cesto acoplado sem sistema limitador do momento de carga do guindaste.",gravidade:"GRAVE"},
+  {codigo:"VG30",descricao:"Equipamento de guindar sem mais de um conjunto de alavancas de comando inferior com proteção contra operação involuntária.",gravidade:"GRAVE"},
+  {codigo:"VG32",descricao:"Utilizar pneus reformados, remoldados ou recauchutados no eixo dianteiro.",gravidade:"GRAVE"},
+  {codigo:"VL01",descricao:"Acessórios do veículo danificados ou inexistentes.",gravidade:"LEVE"},
+  {codigo:"VL02",descricao:"Data de fabricação do veículo fora da especificação do contrato.",gravidade:"LEVE"},
+  {codigo:"VL03",descricao:"Equipamento moto-hidráulico ou escada giratória com data de fabricação fora de especificação ou sem identificação.",gravidade:"LEVE"},
+  {codigo:"VL04",descricao:"Veículo com cabine auxiliar sem informação do número de ocupantes, conforme CTB.",gravidade:"LEVE"},
+  {codigo:"VL05",descricao:"Veículo sem pneu estepe.",gravidade:"LEVE"},
+  {codigo:"VL06",descricao:"Veículo ou equipamentos hidráulicos com pequenos vazamentos que não comprometam o uso imediato.",gravidade:"LEVE"},
+  {codigo:"VL08",descricao:"Documentação do veículo vencida.",gravidade:"LEVE"},
+  {codigo:"VL09",descricao:"Veículo não identificado conforme especificação do contrato.",gravidade:"LEVE"},
+  {codigo:"VL16",descricao:"Controles superiores na caçamba ou ao lado não acessíveis ao operador.",gravidade:"LEVE"},
+  {codigo:"VL21",descricao:"Cesto acoplado/cesta aérea sem ponto para aterramento.",gravidade:"LEVE"},
+  {codigo:"VL22",descricao:"Plataforma do Guindauto não fixada na parte inferior do equipamento ou no chassi do veículo.",gravidade:"LEVE"},
+  {codigo:"VL23",descricao:"Falta batentes de fim de curso nas extensões manuais dos estabilizadores.",gravidade:"LEVE"},
+  {codigo:"VL24",descricao:"Caçamba do cesto acoplado sem placa de identificação com informações específicas.",gravidade:"LEVE"},
+  {codigo:"VL25",descricao:"Cesta/cesto sem sinalização de segurança (capacidade de carga, nº de ocupantes, tensão máxima).",gravidade:"LEVE"},
+  {codigo:"VL26",descricao:"Utilizar veículo com pneus diferentes (numeração, desenho, fabricante) no mesmo eixo.",gravidade:"LEVE"},
+  {codigo:"VL27",descricao:"Danos no veículo que não comprometam a segurança.",gravidade:"LEVE"},
+  {codigo:"VL28",descricao:"Gráfico de carga do guindaste veicular ausente, ilegível ou não fixado.",gravidade:"LEVE"},
+  {codigo:"VL30",descricao:"Falta identificação de carga máxima nas extensões manuais da lança.",gravidade:"LEVE"},
+  {codigo:"VL32",descricao:"Acessórios para operação de emergência do equipamento hidráulico indisponíveis ao usuário.",gravidade:"LEVE"}
+];
+
+const NORMAS_DISTRIBUICAO = [
+  {codigo:"GV101",descricao:"Não abrir/seccionar circuitos, instalações e equipamentos a serem desenergizados, liberados para trabalho no SEP.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV102",descricao:"Operar equipamento de proteção e/ou manobra em usinas e SEs sem autorização do Centro de Operação/supervisor.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV103",descricao:"Não instalar placas de sinalização e/ou etiquetas de advertência necessárias conforme procedimentos.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV104",descricao:"Não realizar auto teste do detector de tensão, utilizar equip. sem condições de uso, ou verificar incorretamente ausência de tensão.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV105",descricao:"Não instalar corretamente os subconjuntos de aterramento temporário ou instalá-los/retirá-los na sequência incorreta.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV106",descricao:"Utilizar subconjunto de aterramento temporário fora das especificações ou sem condições de uso.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV107",descricao:"Não instalar as hastes de aterramento conforme procedimentos definidos pela CEMIG.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV108",descricao:"Não instalar os subconjuntos de aterramento temporário nas estruturas imediatamente após o encabeçamento do novo condutor.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV109",descricao:"Não aterrar o(s) mensageiro(s) da(s) estrutura(s) ou o condutor controle da IP.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV110",descricao:"Fechar equipamento de proteção/manobra no SEP sem autorização do COD/CSC ou com numeração incorreta.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV116",descricao:"Não utilizar corretamente o aterramento temporário do veículo, quando aplicável.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV117",descricao:"Deixar de utilizar ferramentas/equipamentos com isolamento compatível ao nível de tensão ou fora da capacidade projetada.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV120",descricao:"Não solicitar/bloquear o DRA ou não ativar HOT LINE do equipamento a montante do local dos serviços.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV121",descricao:"Não solicitar/realizar a abertura dos dois cartuchos das chaves repetidoras a montante do local dos serviços em rede energizada.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV122",descricao:"Deixar de inspecionar a estrutura de trabalho, estruturas adjacentes e estado físico dos cabos antes do início da tarefa.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV123",descricao:"Estando no solo, tocar no veículo aterrado, contrariando procedimentos específicos.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV124",descricao:"Não se posicionar na plataforma do guindaste hidráulico articulado veicular quando próximo ao SEP energizado.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV125",descricao:"Não sinalizar e delimitar a área de trabalho em atividades com alto potencial de risco de acidente.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV126",descricao:"Não utilizar luvas, mangas, lençóis, calhas ou barreiras isolantes padronizadas no SEP ou proximidades.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV127",descricao:"Utilizar luvas e/ou mangas isolantes furadas ou rasgadas.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV128",descricao:"Não utilizar o uniforme RF nas atividades que o exijam.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV133",descricao:"Não realizar ensaios elétricos em equipamentos do SEP conforme especificações técnicas.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV134",descricao:"Não realizar o duplo isolamento conforme procedimento específico.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV135",descricao:"Encostar parte desprotegida do corpo em partes energizadas.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV136",descricao:"Permanecer entre dois potenciais sem isolamento (fase/fase ou fase/terra).",gravidade:"GRAVISSIMA"},
+  {codigo:"GV137",descricao:"Tocar a cesta aérea ou parte do equipamento em parte aterrada e energizada simultaneamente, sem cobertura isolante.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV138",descricao:"Não testar a corrente do circuito antes de seccionar o condutor, ou utilizar equipamento defeituoso.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV139",descricao:"Não evidenciar para a equipe, com voz clara, as operações a serem executadas (by-pass, chaveamentos, emendas).",gravidade:"GRAVISSIMA"},
+  {codigo:"GV141",descricao:"Deixar de testar ausência de tensão ou de instalar corretamente o aterramento temporário no equipamento sob intervenção.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV142",descricao:"Não obedecer a distância de segurança para cada nível de tensão.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV146",descricao:"Não executar isolamento de pontos energizados nem utilizar coberturas/proteções isolantes conforme procedimentos.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV152",descricao:"Intervir no SEP sem conhecimento do Centro de Operação.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV153",descricao:"Em manutenção de RDA energizada, não trabalhar com materiais/equipamentos limpos, secos, testados e conservados.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV201",descricao:"Não utilizar cinto paraquedista, talabarte, trava-quedas ou linha de vida, ou utilizá-los incorretamente.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV202",descricao:"Não amarrar a escada de topo estando a linha de vida ancorada nela mesma.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV203",descricao:"Utilizar escada veicular sem acionar o travamento ou com facão da torre fora do padrão.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV206",descricao:"Não inspecionar poste/pontalete/parede antes da subida ou ancoragem do executante.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV208",descricao:"Seccionar condutores/mensageiros sem liberar a tração quando instalados com ferramenta de tração.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV209",descricao:"Tracionar condutores/mensageiros com eletricistas posicionados nas estruturas de RDR.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV210",descricao:"Liberar/tensionar estai de âncora com eletricista posicionado sobre a estrutura.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV211",descricao:"Lançar/tracionar condutores sem antes instalar/arrematar totalmente os estais necessários.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV212",descricao:"Não utilizar bandolas ou utilizá-las indevidamente.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV213",descricao:"Não utilizar dinamômetro no tracionamento do cabo em construção/recondutoramento de redes.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV214",descricao:"Utilizar veículos/equipamentos não padronizados pela CEMIG para lançamento/tracionamento de cabos.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV215",descricao:"Não instalar estai temporário em estruturas conforme procedimentos.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV216",descricao:"Reutilizar alças pré-formadas.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV217",descricao:"Tracionar cabo mensageiro de RDC/RDI com eletricistas em estruturas intermediárias ou de ancoragem oposta.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV218",descricao:"Utilizar cinto paraquedista com risco iminente de rompimento de qualquer parte que possa causar queda.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV219",descricao:"Utilizar cinto paraquedista com mosquetões abertos, sem envolvimento das alças, ou trava sem condição de uso.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV221",descricao:"Não inspecionar árvore ao subir.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV301",descricao:"Dirigir veículo sem CNH/autorização, com documento vencido ou categoria incompatível.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV302",descricao:"Utilizar veículo com pneus sem condições de uso.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV303",descricao:"Entregar a direção do veículo a pessoa sem CNH ou permissão para dirigir.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV304",descricao:"Dirigir alcoolizado ou sob efeito de substância ilícita.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV305",descricao:"Avançar o sinal vermelho do semáforo.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV306",descricao:"Não utilizar ou permitir passageiro sem cinto de segurança, exceto em manobras de posicionamento.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV307",descricao:"Realizar ultrapassagem em local com faixa contínua.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV308",descricao:"Transitar em rodovias acima de 120 km/h (leves) ou 100 km/h (pesados).",gravidade:"GRAVISSIMA"},
+  {codigo:"GV309",descricao:"Exceder 60 km/h em estradas não pavimentadas.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV310",descricao:"Utilizar veículo com danos evidentes no sistema de freios/direção, colocando em risco a segurança.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV311",descricao:"Movimentar o veículo com empregado posicionado na escada veicular ou cesta/cesto.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV316",descricao:"Conduzir o veículo usando celular ou fone de ouvido.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV401",descricao:"Realizar atividades no SEP, altura ou espaço confinado sem capacitação/autorização do Responsável Técnico.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV402",descricao:"Utilizar veículos/equipamentos/ferramentas sem capacitação e autorização exigidas.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV403",descricao:"Na ausência do encarregado, substituí-lo por profissional não igualmente capacitado.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV404",descricao:"Manter em campo empregado com treinamentos/ASO vencidos ou atividade não informada no GESET.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV405",descricao:"Permitir atividades no SEP, altura ou espaço confinado por empregado sem capacitação/autorização.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV406",descricao:"Permitir uso de veículos/equipamentos/ferramentas sem a capacitação/autorização exigidas.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV505",descricao:"Utilizar acessórios de movimentação de carga em mau estado ou sem travas de segurança.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV601",descricao:"Não evidenciar a realização da Análise de Risco através do formulário específico.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV602",descricao:"Não realizar a AR no local e início da atividade com participação de todos.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV603",descricao:"Na AR, não identificar corretamente todos os riscos, mantendo risco não controlado/identificado.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV604",descricao:"Não conferir/solicitar as condições requeridas para a execução das atividades.",gravidade:"GRAVISSIMA"},
+  {codigo:"GV618",descricao:"Transitar/permanecer em área com risco de projeção de carga suspensa, galhos ou árvores.",gravidade:"GRAVISSIMA"},
+  {codigo:"G0101",descricao:"Instalar grampo do subconjunto sela/haste no cabo de aterramento definitivo ou em alça pré-formada.",gravidade:"GRAVE"},
+  {codigo:"G0102",descricao:"Instalar aterramento temporário em cabo de aço do estai incorretamente.",gravidade:"GRAVE"},
+  {codigo:"G0103",descricao:"Utilizar lençóis isolantes furados/rasgados a mais de 5 cm da borda do velcro.",gravidade:"GRAVE"},
+  {codigo:"G0104",descricao:"Utilizar aterramento temporário com grampo/conector fora do padrão ou de fornecedores diferentes.",gravidade:"GRAVE"},
+  {codigo:"G0105",descricao:"Abrir equipamento de proteção/manobra sem autorização do COD/CSC ou com numeração incorreta.",gravidade:"GRAVE"},
+  {codigo:"G0106",descricao:"Operar equipamentos de proteção/manobra sem dispositivo de abertura em carga.",gravidade:"GRAVE"},
+  {codigo:"G0107",descricao:"Não solicitar/bloquear o DRA em tarefas que necessitem do mesmo.",gravidade:"GRAVE"},
+  {codigo:"G0108",descricao:"Não solicitar/abrir os dois cartuchos das chaves repetidoras em trabalhos a jusante.",gravidade:"GRAVE"},
+  {codigo:"G0109",descricao:"Efetuar operação incorreta no dispositivo.",gravidade:"GRAVE"},
+  {codigo:"G0114",descricao:"Não testar ausência de tensão de retorno nos condutores de saída/carcaça do medidor.",gravidade:"GRAVE"},
+  {codigo:"G0115",descricao:"Utilizar adorno ao realizar atividades no SEP.",gravidade:"GRAVE"},
+  {codigo:"G0117",descricao:"Permitir intervenções sem meios de comunicação funcionando corretamente entre equipe e Centro de Operação.",gravidade:"GRAVE"},
+  {codigo:"G0118",descricao:"Não informar no documento de liberação o meio de comunicação a ser utilizado.",gravidade:"GRAVE"},
+  {codigo:"G0119",descricao:"Não registrar na AR como se dará a comunicação entre equipe e centro de operação.",gravidade:"GRAVE"},
+  {codigo:"G0120",descricao:"Não prever baterias reserva para os equipamentos de comunicação.",gravidade:"GRAVE"},
+  {codigo:"G0123",descricao:"Não manter um Supervisor no solo para cada eletricista na caçamba.",gravidade:"GRAVE"},
+  {codigo:"G0124",descricao:"Disponibilizar equipamentos não padronizados/sem condições de uso para o ASTA.",gravidade:"GRAVE"},
+  {codigo:"G0125",descricao:"Disponibilizar equipamentos para o ASTA com fornecedor não homologado.",gravidade:"GRAVE"},
+  {codigo:"G0126",descricao:"Disponibilizar equipamentos para o ASTA sem comprovação de rastreabilidade de torque.",gravidade:"GRAVE"},
+  {codigo:"G0127",descricao:"Não fornecer laudo técnico elétrico/mecânico dos equipamentos e ferramentas quando aplicável.",gravidade:"GRAVE"},
+  {codigo:"G0131",descricao:"Instalar aterramento em RDR fora do campo de visão dos executantes.",gravidade:"GRAVE"},
+  {codigo:"G0132",descricao:"Disponibilizar equipamentos/ferramentas com laudo de laboratório não homologado.",gravidade:"GRAVE"},
+  {codigo:"G0133",descricao:"Disponibilizar equipamento/ferramenta/EPI com ensaio vencido, sem rastreabilidade ou identificação ilegível.",gravidade:"GRAVE"},
+  {codigo:"G0202",descricao:"Não manter acionados os grampos de travamento da parte extensível da escada.",gravidade:"GRAVE"},
+  {codigo:"G0203",descricao:"Não manter tensionada a corrente de segurança da escada veicular.",gravidade:"GRAVE"},
+  {codigo:"G0204",descricao:"Realizar atividade com a escada desamarrada, mesmo com linha de vida ancorada fora dela.",gravidade:"GRAVE"},
+  {codigo:"G0205",descricao:"Não amarrar a escada em trabalhos em cubículos e cabines.",gravidade:"GRAVE"},
+  {codigo:"G0206",descricao:"Utilizar escadas danificadas (trincas, partes quebradas, degraus faltando, etc.).",gravidade:"GRAVE"},
+  {codigo:"G0207",descricao:"Apoiar escada manual no braço J da BT isolada ou nos braços de Iluminação Pública.",gravidade:"GRAVE"},
+  {codigo:"G0208",descricao:"Não ter kit de resgate para cesta aérea ou utilizá-lo em desacordo.",gravidade:"GRAVE"},
+  {codigo:"G0210",descricao:"Efetuar ancoragem adicional da linha de vida acima do permitido.",gravidade:"GRAVE"},
+  {codigo:"G0211",descricao:"Permanecer no alto de escada/cesto com o veículo em deslocamento.",gravidade:"GRAVE"},
+  {codigo:"G0212",descricao:"Não controlar risco de queda de materiais/ferramentas durante atividades no alto da estrutura.",gravidade:"GRAVE"},
+  {codigo:"G0213",descricao:"Posicionar-se sobre cruzetas em situações não permitidas.",gravidade:"GRAVE"},
+  {codigo:"G0215",descricao:"Permitir uso de andaimes/passarelas/guarda-corpo fora dos requisitos legais.",gravidade:"GRAVE"},
+  {codigo:"G0216",descricao:"Permitir uso de equipamentos/ferramentas fora dos requisitos legais/procedimentos.",gravidade:"GRAVE"},
+  {codigo:"G0218",descricao:"Manter nos veículos equipamentos para trabalho em altura sem condições de uso.",gravidade:"GRAVE"},
+  {codigo:"G0302",descricao:"Usar equipamento de segurança do veículo em mau estado.",gravidade:"GRAVE"},
+  {codigo:"G0309",descricao:"Praticar direção perigosa colocando em risco a segurança própria, da equipe ou de terceiros.",gravidade:"GRAVE"},
+  {codigo:"G0311",descricao:"Não amarrar cargas do veículo conforme CONTRAN e procedimentos CEMIG.",gravidade:"GRAVE"},
+  {codigo:"G0312",descricao:"Movimentar/içar carga fora das especificações do gráfico de carga.",gravidade:"GRAVE"},
+  {codigo:"G0313",descricao:"Utilizar pneus remoldados/recauchutados sem selo do INMETRO.",gravidade:"GRAVE"},
+  {codigo:"G0314",descricao:"Transportar empregados em veículo com pneus dianteiros remoldados/recauchutados.",gravidade:"GRAVE"},
+  {codigo:"G0315",descricao:"Transitar com velocidade 50% acima do limite da via.",gravidade:"GRAVE"},
+  {codigo:"G0316",descricao:"Não utilizar corretamente os calços em escada veicular ou cesto com empregado posicionado.",gravidade:"GRAVE"},
+  {codigo:"G0317",descricao:"Transportar empregados fora da cabine auxiliar ou em desacordo com a legislação.",gravidade:"GRAVE"},
+  {codigo:"G0318",descricao:"Transportar empregados na cabine auxiliar sem saída de emergência.",gravidade:"GRAVE"},
+  {codigo:"G0319",descricao:"Utilizar veículo em mau estado de conservação (trincas no para-brisa, banco solto etc.).",gravidade:"GRAVE"},
+  {codigo:"G0320",descricao:"Transportar materiais/ferramentas junto aos empregados sem compartimentos fixos e fechados.",gravidade:"GRAVE"},
+  {codigo:"G0321",descricao:"Não disponibilizar ou deixar de gravar as atividades conforme procedimentos.",gravidade:"GRAVE"},
+  {codigo:"G0328",descricao:"Deixar a câmera com bateria descarregada durante a atividade.",gravidade:"GRAVE"},
+  {codigo:"G0329",descricao:"Direcionar a câmera para local diferente do ponto de trabalho/deslocamento.",gravidade:"GRAVE"},
+  {codigo:"G0330",descricao:"Obstruir a gravação da atividade ou deslocamento.",gravidade:"GRAVE"},
+  {codigo:"G0331",descricao:"Manter em campo câmeras sem condições de gravação (defeito).",gravidade:"GRAVE"},
+  {codigo:"G0332",descricao:"Não fornecer câmera para gravação das atividades e deslocamentos.",gravidade:"GRAVE"},
+  {codigo:"G0333",descricao:"Instalar câmera com fixação que não permita posicionamento adequado.",gravidade:"GRAVE"},
+  {codigo:"G0334",descricao:"Disponibilizar veículos/equipamentos de força motriz fora das especificações legais/contratuais.",gravidade:"GRAVE"},
+  {codigo:"G0335",descricao:"Conduzir veículo faltando parafuso na roda.",gravidade:"GRAVE"},
+  {codigo:"G0401",descricao:"'Book' das empresas na Obra PART indisponível no veículo, com composição da equipe e documentos.",gravidade:"GRAVE"},
+  {codigo:"G0501",descricao:"Não utilizar EPI necessário conforme previsto na AR/APR e procedimentos vigentes.",gravidade:"GRAVE"},
+  {codigo:"G0502",descricao:"Realizar arraste de carga sem usar equipamento guincho-perfuratriz.",gravidade:"GRAVE"},
+  {codigo:"G0503",descricao:"Realizar içamento e deslocamento de carga bloqueada.",gravidade:"GRAVE"},
+  {codigo:"G0511",descricao:"Estando no solo, posicionar-se na área de queda de materiais/ferramentas/equipamentos.",gravidade:"GRAVE"},
+  {codigo:"G0512",descricao:"Utilizar guindaste veicular sem abrir/travar totalmente os braços dos estabilizadores.",gravidade:"GRAVE"},
+  {codigo:"G0513",descricao:"Operar equipamentos hidráulicos sem válvulas de segurança ou com estas desreguladas/defeituosas.",gravidade:"GRAVE"},
+  {codigo:"G0514",descricao:"Utilizar ferramenta/equipamento não padronizado para a atividade.",gravidade:"GRAVE"},
+  {codigo:"G0515",descricao:"Transportar/operar motosserra, motopoda e similares em desacordo com procedimentos.",gravidade:"GRAVE"},
+  {codigo:"G0516",descricao:"Operar equipamentos hidráulicos com vazamentos expressivos.",gravidade:"GRAVE"},
+  {codigo:"G0517",descricao:"Utilizar cesto acoplado/cesta aérea em desacordo com a NR-12 ou instruções internas.",gravidade:"GRAVE"},
+  {codigo:"G0518",descricao:"Realizar operação do cesto/cesta sem ser o executante responsável, salvo emergência.",gravidade:"GRAVE"},
+  {codigo:"G0519",descricao:"Içar cargas no gancho simultaneamente à movimentação de pessoas no cesto acoplado.",gravidade:"GRAVE"},
+  {codigo:"G0520",descricao:"Utilizar caçambas danificadas.",gravidade:"GRAVE"},
+  {codigo:"G0521",descricao:"Utilizar ferramentas de impacto em trabalhos em altura ou sobre carroceria de veículo.",gravidade:"GRAVE"},
+  {codigo:"G0523",descricao:"Utilizar EPI/uniforme sem condições de uso em atividade de alto risco.",gravidade:"GRAVE"},
+  {codigo:"G0524",descricao:"Não usar EPI no manuseio de produto químico.",gravidade:"GRAVE"},
+  {codigo:"G0526",descricao:"Não inspecionar acessórios antes da movimentação de cargas (deformações, fios rompidos etc.).",gravidade:"GRAVE"},
+  {codigo:"G0527",descricao:"Usar ferramentas/equipamentos inadequados em atividades de alto potencial de risco.",gravidade:"GRAVE"},
+  {codigo:"G0534",descricao:"Não verificar o correto funcionamento dos equipamentos de teste utilizados.",gravidade:"GRAVE"},
+  {codigo:"G0535",descricao:"Não manter segura e firme ferramenta/equipamento evitando contato com partes energizadas.",gravidade:"GRAVE"},
+  {codigo:"G0540",descricao:"Manter em uso cesta/cesto/guindaste sem ensaios previstos, vencidos ou sem info disponível.",gravidade:"GRAVE"},
+  {codigo:"G0541",descricao:"Não utilizar método adequado para içamento de carga conforme procedimentos.",gravidade:"GRAVE"},
+  {codigo:"G0545",descricao:"Utilizar item controlado por PCV/EMM com ensaio vencido ou de laboratório não credenciado, em RDA-LV.",gravidade:"GRAVE"},
+  {codigo:"G0546",descricao:"Utilizar ferramenta/equipamento de içamento sem descrição legível da capacidade de carga.",gravidade:"GRAVE"},
+  {codigo:"G0601",descricao:"Ausentar-se sem deixar substituto ou sem interromper a tarefa.",gravidade:"GRAVE"},
+  {codigo:"G0602",descricao:"Permitir que integrante da equipe deixe de participar da análise e controle de riscos.",gravidade:"GRAVE"},
+  {codigo:"G0603",descricao:"Utilizar aparelho de comunicação sem interromper a tarefa.",gravidade:"GRAVE"},
+  {codigo:"G0604",descricao:"Estar presente no ponto de trabalho onde ocorreu a não conformidade, sem outra específica.",gravidade:"GRAVE"},
+  {codigo:"G0606",descricao:"Praticar/permitir comportamento inadequado que ocasione risco à segurança própria/da equipe.",gravidade:"GRAVE"},
+  {codigo:"G0607",descricao:"Não evidenciar a Análise Preliminar de Risco através do formulário específico.",gravidade:"GRAVE"},
+  {codigo:"G0608",descricao:"Não dispor de meios de comunicação eficientes inerentes à tarefa.",gravidade:"GRAVE"},
+  {codigo:"G0617",descricao:"Permitir que executante altere a sequência da programação sem conhecimento da equipe.",gravidade:"GRAVE"},
+  {codigo:"G0620",descricao:"Não confirmar se a equipe está ciente das ações de emergência e meios de comunicação disponíveis.",gravidade:"GRAVE"},
+  {codigo:"G0625",descricao:"Não zelar pela própria segurança.",gravidade:"GRAVE"},
+  {codigo:"G0701",descricao:"Não disponibilizar instalações sanitárias na frente/base de trabalho.",gravidade:"GRAVE"},
+  {codigo:"G0709",descricao:"Não disponibilizar itens da 'Área de vivência' em condições adequadas.",gravidade:"GRAVE"},
+  {codigo:"G0711",descricao:"Não utilizar/dispor as condições sanitárias e de conforto fornecidas quando necessário.",gravidade:"GRAVE"},
+  {codigo:"L0101",descricao:"Utilizar placa de sinalização do ASTA com caracteres apagados/ilegíveis.",gravidade:"LEVE"},
+  {codigo:"L0103",descricao:"Utilizar lençóis isolantes com trincas na borda.",gravidade:"LEVE"},
+  {codigo:"L0104",descricao:"Utilizar lençóis isolantes com comprimento menor que 0,95 m.",gravidade:"LEVE"},
+  {codigo:"L0105",descricao:"Não operar equipamento de proteção/manobra na sequência correta.",gravidade:"LEVE"},
+  {codigo:"L0107",descricao:"Utilizar luvas isolantes sem teste manual diário/semanal.",gravidade:"LEVE"},
+  {codigo:"L0108",descricao:"Utilizar luvas de vaqueta em substituição às de proteção ou vice-versa.",gravidade:"LEVE"},
+  {codigo:"L0109",descricao:"Utilizar equipamento de teste de medição sem condição de uso.",gravidade:"LEVE"},
+  {codigo:"L0110",descricao:"Utilizar uniforme RF sem abotoar toda a camisa (colarinho e punho).",gravidade:"LEVE"},
+  {codigo:"L0111",descricao:"Portar/utilizar aparelho de comunicação durante atividades no SEP.",gravidade:"LEVE"},
+  {codigo:"L0113",descricao:"Disponibilizar alicate volt-amperímetro ou equip. de teste não padronizado.",gravidade:"LEVE"},
+  {codigo:"L0114",descricao:"Disponibilizar placa de sinalização do ASTA não padronizada ou ilegível.",gravidade:"LEVE"},
+  {codigo:"L0115",descricao:"Disponibilizar subconjunto de aterramento temporário danificado.",gravidade:"LEVE"},
+  {codigo:"L0203",descricao:"Não utilizar a carretilha dupla ação nos trabalhos em altura.",gravidade:"LEVE"},
+  {codigo:"L0204",descricao:"Utilizar carretilha dupla ação danificada.",gravidade:"LEVE"},
+  {codigo:"L0205",descricao:"Não realizar inspeção visual no poste/pontalete quando não obrigatório o teste mecânico.",gravidade:"LEVE"},
+  {codigo:"L0207",descricao:"Utilizar cinto paraquedista com componentes danificados.",gravidade:"LEVE"},
+  {codigo:"L0211",descricao:"Utilizar corda de linha de vida com a parte amarela exposta.",gravidade:"LEVE"},
+  {codigo:"L0212",descricao:"Usar mosquetão com parte rosqueável danificada ou trava com defeito.",gravidade:"LEVE"},
+  {codigo:"L0213",descricao:"Utilizar nós não padronizados para ancoragem da linha de vida.",gravidade:"LEVE"},
+  {codigo:"L0214",descricao:"Utilizar o mosquetão não rosqueado.",gravidade:"LEVE"},
+  {codigo:"L0215",descricao:"Instalar o primeiro ponto de ancoragem em cruzetas ou parafusos passantes.",gravidade:"LEVE"},
+  {codigo:"L0216",descricao:"Instalar a linha de vida no mesmo ponto de fixação da carretilha dupla ação.",gravidade:"LEVE"},
+  {codigo:"L0217",descricao:"Deixar de instalar a carretilha dupla ação ao acessar o padrão de entrada.",gravidade:"LEVE"},
+  {codigo:"L0218",descricao:"Permanecer com a carretilha dupla ação no cinto enquanto executa trabalho em altura.",gravidade:"LEVE"},
+  {codigo:"L0221",descricao:"Disponibilizar equip./ferramenta/EPI/EPC de altura fora de especificação ou validade.",gravidade:"LEVE"},
+  {codigo:"L0222",descricao:"Realizar reparos em escadas fora dos procedimentos específicos.",gravidade:"LEVE"},
+  {codigo:"L0301",descricao:"Não solicitar auxílio em manobras à ré ou locais com obstáculos, estando acompanhado.",gravidade:"LEVE"},
+  {codigo:"L0302",descricao:"Conduzir veículo sem portar pneu estepe ou com este sem condições de uso.",gravidade:"LEVE"},
+  {codigo:"L0303",descricao:"Operar guindaste veicular sem gráfico de carga legível/fixado.",gravidade:"LEVE"},
+  {codigo:"L0304",descricao:"Conduzir veículo com cinto de segurança danificado ou não instalado, quando fora de uso.",gravidade:"LEVE"},
+  {codigo:"L0305",descricao:"Transportar empregados com cinto/travas danificados sem risco imediato.",gravidade:"LEVE"},
+  {codigo:"L0306",descricao:"Transportar empregados com pneus de modelo diferente no mesmo eixo.",gravidade:"LEVE"},
+  {codigo:"L0307",descricao:"Transportar combustíveis/produtos químicos em embalagens não padronizadas ou sem FISPQ.",gravidade:"LEVE"},
+  {codigo:"L0308",descricao:"Transportar produtos inflamáveis junto à equipe.",gravidade:"LEVE"},
+  {codigo:"L0309",descricao:"Não identificar visualmente o reservatório de água não potável do veículo.",gravidade:"LEVE"},
+  {codigo:"L0310",descricao:"Conduzir veículo com danos no para-brisa que não comprometam a visão.",gravidade:"LEVE"},
+  {codigo:"L0316",descricao:"Conduzir caminhão sem sinal sonoro em marcha à ré.",gravidade:"LEVE"},
+  {codigo:"L0317",descricao:"Transportar escada manual excedendo dimensões do veículo sem sinalização.",gravidade:"LEVE"},
+  {codigo:"L0318",descricao:"Conduzir veículo com equipamentos danificados ou inexistentes.",gravidade:"LEVE"},
+  {codigo:"L0319",descricao:"Utilizar calço em desacordo com procedimento específico.",gravidade:"LEVE"},
+  {codigo:"L0322",descricao:"Utilizar equipamento sem calços de apoio dos estabilizadores laterais.",gravidade:"LEVE"},
+  {codigo:"L0326",descricao:"Permitir entrada de terceiros na área isolada.",gravidade:"LEVE"},
+  {codigo:"L0327",descricao:"Não sinalizar/isolar área de trabalho na zona rural com trânsito de veículos/pedestres.",gravidade:"LEVE"},
+  {codigo:"L0328",descricao:"Não definir faixa de desaceleração em vias arteriais/trânsito rápido.",gravidade:"LEVE"},
+  {codigo:"L0329",descricao:"Conduzir veículo com cabine auxiliar sem informação do número de ocupantes.",gravidade:"LEVE"},
+  {codigo:"L0330",descricao:"Operar veículo/equip. hidráulico com pequenos vazamentos que não comprometam uso imediato.",gravidade:"LEVE"},
+  {codigo:"L0331",descricao:"Não portar evidência de inspeção frequente do equipamento de força motriz, ou com validade vencida.",gravidade:"LEVE"},
+  {codigo:"L0332",descricao:"Manter em campo veículo com data de fabricação fora da especificação do contrato.",gravidade:"LEVE"},
+  {codigo:"L0333",descricao:"Manter em campo equip. moto-hidráulico/escada giratória fora de especificação ou sem identificação.",gravidade:"LEVE"},
+  {codigo:"L0401",descricao:"Não portar/manter no veículo o crachá funcional com nível de autorização.",gravidade:"LEVE"},
+  {codigo:"L0403",descricao:"Manter em campo empregado com pendências administrativas de documentação contratual.",gravidade:"LEVE"},
+  {codigo:"L0501",descricao:"Não acondicionar alças/laços/amarrações pré-formadas conforme procedimentos.",gravidade:"LEVE"},
+  {codigo:"L0502",descricao:"Não manter equipamentos/ferramentas acondicionados e organizados no veículo.",gravidade:"LEVE"},
+  {codigo:"L0506",descricao:"Disponibilizar ferramentas manuais sem proteção da bainha de couro.",gravidade:"LEVE"},
+  {codigo:"L0508",descricao:"Utilizar capacete sobre boné em qualquer atividade.",gravidade:"LEVE"},
+  {codigo:"L0509",descricao:"Usar bota de campanha com o zíper aberto, quando obrigatória.",gravidade:"LEVE"},
+  {codigo:"L0510",descricao:"Utilizar perneira sem dispositivo que a mantenha fixada e fechada.",gravidade:"LEVE"},
+  {codigo:"L0511",descricao:"Utilizar óculos de proteção sobre óculos de correção visual.",gravidade:"LEVE"},
+  {codigo:"L0512",descricao:"Utilizar botina com o cadarço desamarrado.",gravidade:"LEVE"},
+  {codigo:"L0513",descricao:"Utilizar adornos fora do SEP.",gravidade:"LEVE"},
+  {codigo:"L0515",descricao:"Em atividade de baixo risco, deixar de usar ou usar ferramenta/EPI/uniforme sem condições de uso.",gravidade:"LEVE"},
+  {codigo:"L0516",descricao:"Transportar ferramentas manuais sem proteção da bainha de couro adequada.",gravidade:"LEVE"},
+  {codigo:"L0517",descricao:"Utilizar ferramentas/equipamentos não fornecidos pela empresa ou com improviso.",gravidade:"LEVE"},
+  {codigo:"L0518",descricao:"Não amarrar a escada usada na elevação de condutores/mensageiros, ou não sinalizá-la/isolá-la.",gravidade:"LEVE"},
+  {codigo:"L0519",descricao:"Acessar a estrutura com ferramentas não acondicionadas em bolsa/sacola adequada.",gravidade:"LEVE"},
+  {codigo:"L0520",descricao:"Transportar cargas com objetos soltos sobre o carrinho hidráulico ou equip. de guindar.",gravidade:"LEVE"},
+  {codigo:"L0525",descricao:"Não utilizar protetor solar.",gravidade:"LEVE"},
+  {codigo:"L0526",descricao:"Disponibilizar EPI/EPC/ferramentas fora de especificação ou com ensaio vencido.",gravidade:"LEVE"},
+  {codigo:"L0601",descricao:"Não evidenciar a análise pós-tarefa quando ocorrer fator não previsto na execução.",gravidade:"LEVE"},
+  {codigo:"L0607",descricao:"Não garantir condições de saúde/segurança do trabalho que possam gerar incidentes.",gravidade:"LEVE"},
+  {codigo:"L0609",descricao:"Deixar de colher assinatura de empregado que participou da AR.",gravidade:"LEVE"},
+  {codigo:"L0610",descricao:"Utilizar formulário de Análise de Risco não padronizado.",gravidade:"LEVE"},
+  {codigo:"L0612",descricao:"Deixar de considerar na AR os perigos de atividade de baixo risco e seus controles.",gravidade:"LEVE"},
+  {codigo:"L0616",descricao:"Não cumprir item de segurança do trabalho contido em instruções/documentos aplicáveis.",gravidade:"LEVE"},
+  {codigo:"L0618",descricao:"Não portar o crachá em atividades em unidades consumidoras ou propriedades particulares.",gravidade:"LEVE"},
+  {codigo:"L0620",descricao:"Não sinalizar/delimitar área de trabalho de baixo risco conforme procedimentos.",gravidade:"LEVE"},
+  {codigo:"L0623",descricao:"Programar/permitir empregado cumprir horário desrespeitando interstício e repouso.",gravidade:"LEVE"},
+  {codigo:"L0624",descricao:"Permitir em campo empregado cadastrado no sistema CEMIG com identificação de outro empregado.",gravidade:"LEVE"},
+  {codigo:"L0702",descricao:"Não atender aos procedimentos de saúde vigentes.",gravidade:"LEVE"},
+  {codigo:"L0703",descricao:"Não verificar existência de insetos/animais peçonhentos no local de trabalho.",gravidade:"LEVE"},
+  {codigo:"L0707",descricao:"Não garantir condições sanitárias e de conforto nos locais de trabalho.",gravidade:"LEVE"}
+];
+
+const NORMAS_FERRAMENTAS = [
+  {codigo:"FGV01",descricao:"Conjunto de aterramento temporário despadronizado ou sem condições adequadas de uso.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV02",descricao:"Coberturas rígidas/flexíveis para LV, barreiras e calhas isolantes impróprias para uso.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV03",descricao:"Conjunto de cinto de segurança tipo paraquedista e acessórios armazenados inadequadamente.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV04",descricao:"Mantas, lençóis, mangas, luvas de borracha danificados ou impróprios para uso.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV05",descricao:"Escadas, andaimes, cadeiras suspensas e plataforma de LV armazenados inadequadamente.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV06",descricao:"Acessórios de içamento (cintas, estropos, cabos, manilhas, olhais) fora de bom estado.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV07",descricao:"Cintas com corrosão/desgaste, limpeza ou conservação inadequada dos olhais.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV08",descricao:"Reguladores e manômetro não limpos, com contaminantes como óleo e graxa.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV09",descricao:"Mangueiras dos cilindros com óleo, graxa, cortes, queimaduras ou rachaduras.",gravidade:"GRAVISSIMA"},
+  {codigo:"FGV10",descricao:"Maçaricos, bocais e acendedores de chama com danos ou contaminantes.",gravidade:"GRAVISSIMA"},
+  {codigo:"FG201",descricao:"Gaiolas e cestas aéreas inadequadas para içamento de pessoas.",gravidade:"GRAVE"},
+  {codigo:"FG202",descricao:"Equipamentos de solda elétrica/oxi-corte inadequados ou em mau estado.",gravidade:"GRAVE"},
+  {codigo:"FG203",descricao:"EPIs danificados ou impróprios para uso.",gravidade:"GRAVE"},
+  {codigo:"FG204",descricao:"Equipamentos de resgate e primeiros socorros armazenados inadequadamente.",gravidade:"GRAVE"},
+  {codigo:"FG205",descricao:"Ferramentas para trabalho no SEP inadequadas ou indevidamente isoladas.",gravidade:"GRAVE"},
+  {codigo:"FG206",descricao:"Escadas/andaimes em mau estado de conservação/funcionamento ou armazenamento.",gravidade:"GRAVE"},
+  {codigo:"FG207",descricao:"Equipamentos de Medição e Monitoramento (EMM) com mau funcionamento/armazenamento.",gravidade:"GRAVE"},
+  {codigo:"FG208",descricao:"Ferramentas rotativas (lixadeiras, esmerilhadeiras etc.) sem proteções adequadas.",gravidade:"GRAVE"},
+  {codigo:"FG209",descricao:"Equipamentos e ferramentas de trabalho sem condições seguras de utilização.",gravidade:"GRAVE"},
+  {codigo:"FG210",descricao:"Espora de bico, duplo T e degraus de fibra em mau estado de conservação.",gravidade:"GRAVE"},
+  {codigo:"FG211",descricao:"Equipamentos/ferramentas para atmosfera explosiva não intrinsecamente seguros.",gravidade:"GRAVE"},
+  {codigo:"FG212",descricao:"Cordas, cabos de aço e cintas sem identificação de carga máxima de trabalho.",gravidade:"GRAVE"},
+  {codigo:"FG213",descricao:"Cordas não guardadas em local apropriado, expostas a corrosão/calor.",gravidade:"GRAVE"},
+  {codigo:"FG214",descricao:"Motosserra/motopoda inadequados ou em mau estado de conservação.",gravidade:"GRAVE"},
+  {codigo:"FG215",descricao:"Sistemas pneumáticos/hidráulicos inadequados ou sem proteções.",gravidade:"GRAVE"},
+  {codigo:"FL001",descricao:"Meios de comunicação (rádio, celular, auto track etc.) com mau funcionamento.",gravidade:"LEVE"},
+  {codigo:"FL002",descricao:"Acessórios de proteção de fuga a terra inadequados ao uso.",gravidade:"LEVE"},
+  {codigo:"FL003",descricao:"Acessórios de sinalização/delimitação de área em mau estado de conservação.",gravidade:"LEVE"},
+  {codigo:"FL004",descricao:"Acessórios específicos não projetados/construídos com resistência e segurança adequadas.",gravidade:"LEVE"},
+  {codigo:"FL005",descricao:"Aterramento temporário sem abraçadeiras, estanhado, termo-contráctil ou com data irregular.",gravidade:"LEVE"},
+  {codigo:"FL006",descricao:"Equipamentos de resgate e primeiros socorros armazenados inadequadamente.",gravidade:"LEVE"},
+  {codigo:"FL007",descricao:"Item apresentado em quantidade inferior à prevista na especificação.",gravidade:"LEVE"},
+  {codigo:"FL008",descricao:"Item previsto na especificação não apresentado.",gravidade:"LEVE"},
+  {codigo:"FL009",descricao:"Ferramenta/equipamento não atende às especificações técnicas da CEMIG.",gravidade:"LEVE"},
+  {codigo:"FL010",descricao:"Ferramenta/equipamento não padronizado ou de fornecedor não homologado.",gravidade:"LEVE"}
+];
+
+const NORMAS_AMBIENTE_PREDIAL = [
+  {codigo:"AGV01",descricao:"Não possui equipamento de refrigeração em bom estado para guarda e conservação de alimentos.",gravidade:"GRAVISSIMA"},
+  {codigo:"AGV03",descricao:"Não possui água potável/filtrada para os trabalhadores (bebedouro ou similar).",gravidade:"GRAVISSIMA"},
+  {codigo:"AGV06",descricao:"Produtos inflamáveis e químicos não armazenados adequadamente em local apropriado.",gravidade:"GRAVISSIMA"},
+  {codigo:"AG002",descricao:"Aparelhos/sistema de ar condicionado sem inspeção e limpeza periódica.",gravidade:"GRAVE"},
+  {codigo:"AG003",descricao:"PSCIP inexistente/desatualizado — projeto de combate a incêndio e AVCB.",gravidade:"GRAVE"},
+  {codigo:"AG004",descricao:"Ausência de equipamentos de proteção contra incêndio onde aplicável.",gravidade:"GRAVE"},
+  {codigo:"AG006",descricao:"Pisos com depressões/saliências que prejudiquem circulação de pessoas/materiais.",gravidade:"GRAVE"},
+  {codigo:"AG007",descricao:"Falta de materiais antiderrapantes/corrimãos em locais de risco de escorregamento.",gravidade:"GRAVE"},
+  {codigo:"AG008",descricao:"Materiais obstruindo portas, equipamentos contra incêndio ou saídas de emergência.",gravidade:"GRAVE"},
+  {codigo:"AG009",descricao:"Vias de circulação não sinalizadas/pré-definidas em locais de alto risco.",gravidade:"GRAVE"},
+  {codigo:"AG010",descricao:"Ausência de sinalização de segurança e emergência.",gravidade:"GRAVE"},
+  {codigo:"AG011",descricao:"Prateleiras/estantes/escaninhos não robustos ou inadequados ao material armazenado.",gravidade:"GRAVE"},
+  {codigo:"AG013",descricao:"Ausência de estufa/fogão adequado para refeição (proibido álcool).",gravidade:"GRAVE"},
+  {codigo:"AG014",descricao:"Iluminação inadequada ao ambiente.",gravidade:"GRAVE"},
+  {codigo:"AG015",descricao:"Conforto térmico inadequado ao ambiente.",gravidade:"GRAVE"},
+  {codigo:"AG016",descricao:"Ausência de guarda-corpo nos andares acima do solo.",gravidade:"GRAVE"},
+  {codigo:"AG017",descricao:"Vestiário/instalações sanitárias fora do dimensionamento NR-18/NR-24.",gravidade:"GRAVE"},
+  {codigo:"AG018",descricao:"Resíduos industriais não separados devidamente.",gravidade:"GRAVE"},
+  {codigo:"AG020",descricao:"Instalações elétricas inadequadamente protegidas/identificadas.",gravidade:"GRAVE"},
+  {codigo:"AG025",descricao:"Ausência de pia exclusiva para lavar alimentos e utensílios.",gravidade:"GRAVE"},
+  {codigo:"AG026",descricao:"Botijões de GLP mal instalados, sem válvula/mangueira aprovadas pelo INMETRO.",gravidade:"GRAVE"},
+  {codigo:"AG028",descricao:"Instalações sanitárias sem piso/paredes impermeáveis ou portas individuais.",gravidade:"GRAVE"},
+  {codigo:"AG029",descricao:"Instalação sanitária fora da proporção de 1 conjunto para 20 trabalhadores.",gravidade:"GRAVE"},
+  {codigo:"AG030",descricao:"Ausência de local para armazenamento de alimentos separado de produtos de limpeza.",gravidade:"GRAVE"},
+  {codigo:"AG033",descricao:"Cobertura/laje sem proteção contra chuva e intempéries.",gravidade:"GRAVE"},
+  {codigo:"AG034",descricao:"Espaços confinados não reconhecidos/identificados/sinalizados/com registros atualizados.",gravidade:"GRAVE"},
+  {codigo:"AG050",descricao:"Mangueira/tubulação de gás GLP em desacordo com normas vigentes.",gravidade:"GRAVE"},
+  {codigo:"AG072",descricao:"Ambiente com focos de reprodução de mosquitos.",gravidade:"GRAVE"},
+  {codigo:"AG093",descricao:"Equipamentos de proteção contra incêndio não selados/sinalizados/com inspeção em dia.",gravidade:"GRAVE"},
+  {codigo:"AG101",descricao:"Estabelecimento sem alvará de licença e funcionamento.",gravidade:"GRAVE"},
+  {codigo:"AG102",descricao:"Instalação predial em mau estado (infiltrações, sujeira, rachaduras).",gravidade:"GRAVE"},
+  {codigo:"AG105",descricao:"Instalações sanitárias sem ventilação natural/exaustão forçada.",gravidade:"GRAVE"},
+  {codigo:"AG106",descricao:"Reservatórios de água/bebedouros sem limpeza periódica.",gravidade:"GRAVE"},
+  {codigo:"AG110",descricao:"Local de refeição em condições inadequadas (limpeza, iluminação, mobiliário).",gravidade:"GRAVE"},
+  {codigo:"AG112",descricao:"Chuveiro sem água quente ou fora da proporção de 1 para 10 trabalhadores.",gravidade:"GRAVE"},
+  {codigo:"AL001",descricao:"Cadeira sem altura ajustável/rodízios/borda arredondada/apoio lombar adequado.",gravidade:"LEVE"},
+  {codigo:"AL002",descricao:"Mapa de risco ausente ou desatualizado.",gravidade:"LEVE"},
+  {codigo:"AL003",descricao:"Mesas/cadeiras com quinas vivas ou tampa de vidro.",gravidade:"LEVE"},
+  {codigo:"AL004",descricao:"Monitor/mesa fora das condições antropométricas dos trabalhadores.",gravidade:"LEVE"},
+  {codigo:"AL005",descricao:"Armários individuais em mau estado de conservação.",gravidade:"LEVE"},
+  {codigo:"AL006",descricao:"Banheiro não independente para homens e mulheres, quando necessário.",gravidade:"LEVE"},
+  {codigo:"AL008",descricao:"Canteiro/estabelecimento desorganizado, sujo ou com vias de circulação impedidas.",gravidade:"LEVE"},
+  {codigo:"AL009",descricao:"Materiais/equipamentos armazenados inadequadamente.",gravidade:"LEVE"},
+  {codigo:"AL013",descricao:"Local inapropriado para armazenamento/destinação de resíduos.",gravidade:"LEVE"},
+  {codigo:"AL014",descricao:"Parte não pavimentada da instalação sem capina/limpeza.",gravidade:"LEVE"},
+  {codigo:"AL018",descricao:"Lâmpadas ausentes ou não funcionando em algum cômodo.",gravidade:"LEVE"},
+  {codigo:"AL019",descricao:"Ausência de recipiente com tampa para coleta de lixo (cozinha/banheiro).",gravidade:"LEVE"},
+  {codigo:"AL021",descricao:"Produto químico sem FISPQ.",gravidade:"LEVE"},
+  {codigo:"AL027",descricao:"Não cumprir item de segurança do trabalho contido em instruções/documentos aplicáveis.",gravidade:"LEVE"},
+  {codigo:"AL076",descricao:"Instalação necessitando higienização/dedetização por insetos ou roedores.",gravidade:"LEVE"},
+  {codigo:"AL078",descricao:"Instalações sanitárias sem água/sabão/papel higiênico ou uso de toalhas coletivas.",gravidade:"LEVE"},
+  {codigo:"AL079",descricao:"Material empilhado a menos de 0,50 m das paredes/muros/estruturas laterais.",gravidade:"LEVE"},
+  {codigo:"AL080",descricao:"Cozinha sem material para limpeza/secagem das mãos (uso de toalhas coletivas).",gravidade:"LEVE"},
+  {codigo:"AL096",descricao:"Madeiras com pontas de prego, ferragens expostas ou material perfuro-cortante exposto.",gravidade:"LEVE"},
+  {codigo:"AL103",descricao:"Condição de risco leve na área de armazenamento que possa gerar incidentes.",gravidade:"LEVE"},
+  {codigo:"AL104",descricao:"Área de armazenamento controlado sem obstrução física separando do restante.",gravidade:"LEVE"}
+];
+
+const NORMAS_AMBIENTAL = [
+  {codigo:"MAGV01",descricao:"Produtos químicos não armazenados em local adequado, protegido e identificado.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV02",descricao:"Ausência de kit de contenção de emergências próximo ao armazenamento, quando aplicável.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV03",descricao:"Recipientes/tambores com resíduos perigosos não devidamente identificados.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV04",descricao:"Transformadores/equipamentos com óleo não armazenados em bacias de contenção.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV05",descricao:"Coleta/destinação de resíduos não realizada por empresa devidamente licenciada.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV06",descricao:"Resíduos contaminados (perigosos) não segregados dos não perigosos.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV07",descricao:"Fossas sépticas/biodigestores/sistemas de tratamento sem funcionamento adequado.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV08",descricao:"Captações de água não regularizadas ou fora das autorizações/controles aplicáveis.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV09",descricao:"Sistema de esgotamento sanitário fora de condições normais.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV10",descricao:"Colaboradores sem conhecimento dos procedimentos de emergências ambientais.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV11",descricao:"Autorizações/licenças ambientais não expostas em local visível.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAGV12",descricao:"Atividades executadas não contempladas no LAIA vigente.",gravidade:"GRAVISSIMA"},
+  {codigo:"MAG01",descricao:"Áreas operacionais com obstruções.",gravidade:"GRAVE"},
+  {codigo:"MAG02",descricao:"Colaboradores sem conhecimento dos riscos/controles ambientais de produtos químicos.",gravidade:"GRAVE"},
+  {codigo:"MAG03",descricao:"Local de armazenamento sem sinalização adequada indicando produtos químicos.",gravidade:"GRAVE"},
+  {codigo:"MAG04",descricao:"FDS/FISPQ dos produtos químicos indisponíveis ou desatualizadas.",gravidade:"GRAVE"},
+  {codigo:"MAG05",descricao:"Coletores de resíduos não identificados ou fora de bom estado/demanda.",gravidade:"GRAVE"},
+  {codigo:"MAG06",descricao:"Acondicionamento de resíduos (pneus, transformadores) fora do padrão (cobertura, contenção, limpeza).",gravidade:"GRAVE"},
+  {codigo:"MAG07",descricao:"Vazamento ou transbordo de água/efluentes sanitários.",gravidade:"GRAVE"},
+  {codigo:"MAG08",descricao:"Caixa de esgoto com problemas estruturais, vedação ou indícios de vazamento.",gravidade:"GRAVE"},
+  {codigo:"MAG09",descricao:"Limpeza/sucção/destinação de efluentes sanitários sem empresa regularizada.",gravidade:"GRAVE"},
+  {codigo:"MAG10",descricao:"Ausência de controle do consumo de água (hidrômetro/medição/monitoramento).",gravidade:"GRAVE"},
+  {codigo:"MAG11",descricao:"Tubulações de calhas/drenagem obstruídas ou direcionando água incorretamente.",gravidade:"GRAVE"},
+  {codigo:"MAG12",descricao:"Ausência de treinamentos, DDS ou simulados de resposta a emergências ambientais.",gravidade:"GRAVE"},
+  {codigo:"MAG13",descricao:"Kit de emergência incompleto ou fora de local sinalizado/acessível.",gravidade:"GRAVE"},
+  {codigo:"MAG14",descricao:"Registros de treinamentos ambientais obrigatórios indisponíveis ou desatualizados.",gravidade:"GRAVE"},
+  {codigo:"MAG15",descricao:"Colaboradores sem conhecimento de aspectos/impactos ambientais e controles operacionais.",gravidade:"GRAVE"},
+  {codigo:"MAG16",descricao:"Condicionantes ambientais aplicáveis não cumpridas.",gravidade:"GRAVE"},
+  {codigo:"MAL01",descricao:"Frentes de serviço sujas ou desorganizadas.",gravidade:"LEVE"},
+  {codigo:"MAL02",descricao:"Materiais/insumos/ferramentas armazenados em locais inadequados/não identificados.",gravidade:"LEVE"},
+  {codigo:"MAL03",descricao:"MTR e CDF indisponíveis ou incompatíveis com os resíduos destinados.",gravidade:"LEVE"},
+  {codigo:"MAL04",descricao:"Resíduos não segregados conforme classificação (recicláveis, orgânicos, rejeitos, perigosos).",gravidade:"LEVE"},
+  {codigo:"MAL05",descricao:"Sanitários indisponíveis, mal conservados ou sem higienização periódica.",gravidade:"LEVE"},
+  {codigo:"MAL06",descricao:"Laudos de descontaminação/higienização de filtros/bebedouros indisponíveis.",gravidade:"LEVE"},
+  {codigo:"MAL07",descricao:"Reservatórios (caixa d'água) sem vedação/higienização ou identificação.",gravidade:"LEVE"},
+  {codigo:"MAL08",descricao:"Ausência de campanhas/DDS de conscientização ambiental quando previstas.",gravidade:"LEVE"},
+  {codigo:"MAL09",descricao:"Boas práticas ambientais não identificadas/compartilhadas com outras unidades.",gravidade:"LEVE"}
+];
+
+const TIPOS_INSPECAO = [
+  {key:"isvv",label:"ISVV — Índice de Segurança Verificada em Veículo",normas:NORMAS_VEICULO},
+  {key:"isvca",label:"ISVCA — Veículo com Cesto Acoplado",normas:NORMAS_VEICULO},
+  {key:"isp_com",label:"ISP — Construção, Operação e Manutenção",normas:NORMAS_DISTRIBUICAO},
+  {key:"isp_lv",label:"ISP — Manutenção RDA Energizada LV",normas:NORMAS_DISTRIBUICAO},
+  {key:"isvf",label:"ISVF — Índice de Segurança Verificada em Ferramentas",normas:NORMAS_FERRAMENTAS},
+  {key:"isvp",label:"ISVP — Índice de Segurança Verificada em Ambiente/Predial",normas:NORMAS_AMBIENTE_PREDIAL},
+  {key:"isvma",label:"ISVMA — Inspeção Ambiental",normas:NORMAS_AMBIENTAL}
+];
+
 const TAG_PALETTE = [
   {bg:'#25344a',text:'#8fc3ff'},{bg:'#3a2b1f',text:'#e8a33d'},{bg:'#243a2c',text:'#6fd19a'},
   {bg:'#372a3a',text:'#d693e8'},{bg:'#3a2828',text:'#ef8a8a'},{bg:'#243838',text:'#7fd6d6'},
@@ -282,12 +986,30 @@ function newId(){
   return 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 }
 
-let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 } };
+let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 }, isp:{entries:[]}, inspecao:null, tratativas:{entries:[]} };
 let expandedId = null;
 let openPopoverId = null;
 let editingId = null;
 let deletingId = null;
 let resettingId = null;
+let activeTab = 'coletas';
+let chartIspInstance = null;
+let chartStatusPizzaInstance = null;
+let chartTratativasInstance = null;
+let chartGravInstance = null;
+let chartClickInstance = null;
+
+const MESES_ANO = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+function estadoPadraoInspecao(){
+  const local = () => ({ 'CE-BH': {meta:4, feito:0}, 'CE-BE': {meta:4, feito:0}, 'CE-SL': {meta:3, feito:0} });
+  return {
+    checklist: { 'MANUTENÇÃO': local(), 'CONSTRUÇÃO': local(), 'LINHA VIVA': local() },
+    observacao: '',
+    gravacoes: { ano: String(new Date().getFullYear()), meses: MESES_ANO.map(m=>({mes:m, meta:0, entrega:0})) },
+    clickSeg: { meses: MESES_ANO.map(m=>({mes:m, aumento:0, diminuicao:0, total:0})) }
+  };
+}
 
 async function loadState(){
   let loaded = null;
@@ -308,18 +1030,56 @@ async function loadState(){
     STATE.config = Object.assign({prazoDias:15}, (loaded && loaded.config)||{});
     await saveState();
   }
+  STATE.isp = (loaded && loaded.isp) ? loaded.isp : {entries:[]};
+  STATE.inspecao = (loaded && loaded.inspecao) ? loaded.inspecao : estadoPadraoInspecao();
+  STATE.tratativas = (loaded && loaded.tratativas) ? loaded.tratativas : {entries:[]};
   document.getElementById('fPrazo').value = STATE.config.prazoDias;
+}
+
+let saveRetryTimeout = null;
+let saveFalhouAtual = false;
+
+function mostrarAvisoSalvar(msg){
+  const el = document.getElementById('avisoSalvamento');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function esconderAvisoSalvar(){
+  const el = document.getElementById('avisoSalvamento');
+  el.style.display = 'none';
+}
+
+async function tentarSalvar(){
+  const res = await fetch('/api/estado', {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(STATE)
+  });
+  if(res.status === 401){ window.location.href = '/login'; return; }
+  if(!res.ok) throw new Error('Falha ao salvar no servidor: ' + res.status);
 }
 
 async function saveState(){
   try{
-    const res = await fetch('/api/estado', {
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(STATE)
-    });
-    if(res.status === 401){ window.location.href = '/login'; }
-  }catch(e){ console.error('Falha ao salvar no servidor', e); }
+    await tentarSalvar();
+    saveFalhouAtual = false;
+    esconderAvisoSalvar();
+  }catch(e){
+    console.error('Falha ao salvar', e);
+    saveFalhouAtual = true;
+    mostrarAvisoSalvar('Não foi possível salvar agora. Tentando novamente...');
+    clearTimeout(saveRetryTimeout);
+    saveRetryTimeout = setTimeout(async ()=>{
+      try{
+        await tentarSalvar();
+        saveFalhouAtual = false;
+        esconderAvisoSalvar();
+      }catch(e2){
+        console.error('Falha ao salvar (nova tentativa)', e2);
+        mostrarAvisoSalvar('Ainda não foi possível salvar. Suas últimas alterações podem não ter sido gravadas — evite fechar a aba agora.');
+      }
+    }, 3000);
+  }
 }
 
 function diasDesde(dataStr){
@@ -376,6 +1136,34 @@ function renderStats(rows){
     <div class="stat warn"><div class="num">${atencao}</div><div class="lbl">Vencendo em breve</div></div>
     <div class="stat ok"><div class="num">${emdia}</div><div class="lbl">Em dia</div></div>
   `;
+  renderChartStatusPizza(rows);
+}
+
+function renderChartStatusPizza(rows){
+  const canvas = document.getElementById('chartStatusPizza');
+  if(!canvas || canvas.offsetParent===null || typeof Chart==='undefined') return;
+  rows = rows || computeRows();
+  const nunca = rows.filter(r=>r.status==='nunca').length;
+  const danger = rows.filter(r=>r.status==='danger').length;
+  const warn = rows.filter(r=>r.status==='warn').length;
+  const ok = rows.filter(r=>r.status==='ok').length;
+
+  if(chartStatusPizzaInstance) chartStatusPizzaInstance.destroy();
+  chartStatusPizzaInstance = new Chart(canvas, {
+    type:'pie',
+    data:{
+      labels:['Em dia','Atenção','Atrasado','Nunca coletado'],
+      datasets:[{
+        data:[ok, warn, danger, nunca],
+        backgroundColor:['#3ecf8e','#e8a33d','#ef5b5b','#5c636c'],
+        borderColor:'#181c23', borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{color:'#eceff2'} } }
+    }
+  });
 }
 
 function renderRows(){
@@ -685,6 +1473,472 @@ document.getElementById('btnAdd').addEventListener('click', adicionarVeiculo);
 document.getElementById('btnSair').addEventListener('click', async ()=>{
   try{ await fetch('/api/logout', {method:'POST'}); }catch(e){}
   window.location.href = '/login';
+});
+
+/* ===================== ABAS ===================== */
+
+function switchTab(tab){
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('view-coletas').style.display = tab==='coletas' ? '' : 'none';
+  document.getElementById('view-isp').style.display = tab==='isp' ? '' : 'none';
+  document.getElementById('view-inspecao').style.display = tab==='inspecao' ? '' : 'none';
+  document.getElementById('view-tratativas').style.display = tab==='tratativas' ? '' : 'none';
+  if(tab==='coletas') renderChartStatusPizza();
+  if(tab==='isp') renderIsp();
+  if(tab==='inspecao') renderInspecaoAll();
+  if(tab==='tratativas') renderTratativas();
+}
+document.querySelectorAll('.tab-btn').forEach(b=>{
+  b.addEventListener('click', ()=> switchTab(b.dataset.tab));
+});
+
+/* ===================== ISP VIRTUAL POR PROCESSO ===================== */
+
+function renderIsp(){
+  renderIspTabela();
+  renderChartIsp();
+}
+
+function renderIspTabela(){
+  const tbody = document.getElementById('ispLinhas');
+  const entries = STATE.isp.entries;
+  if(entries.length===0){
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--text-muted);font-style:italic;padding:14px 8px;">Nenhum lançamento ainda.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = entries.map(e=>`
+    <tr data-isp-id="${e.id}">
+      <td><input type="text" class="isp-campo" data-campo="mes" value="${escapeHtml(e.mes)}"></td>
+      <td><input type="text" class="isp-campo" data-campo="processo" value="${escapeHtml(e.processo)}"></td>
+      <td><input type="number" class="isp-campo" min="0" data-campo="quantidade" value="${e.quantidade}"></td>
+      <td class="col-acao"><button class="btn btn-sm btn-icon" data-acao="isp-excluir" data-id="${e.id}" title="Excluir">🗑</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderChartIsp(){
+  const canvas = document.getElementById('chartIsp');
+  if(!canvas || canvas.offsetParent===null || typeof Chart==='undefined') return;
+  const entries = STATE.isp.entries;
+  const meses = [...new Set(entries.map(e=>e.mes))];
+  const processos = [...new Set(entries.map(e=>e.processo))];
+  const labels = [...processos, 'Total Geral'];
+  const coresMes = ['#4c9eeb','#e05263','#8fd14f','#a78bfa','#5fb8b8','#f7c948','#ef8a8a','#7fd6d6'];
+
+  const datasets = meses.map((m,i)=>{
+    const data = processos.map(p => entries.filter(e=>e.mes===m && e.processo===p)
+      .reduce((s,e)=>s+Number(e.quantidade||0),0));
+    data.push(data.reduce((a,b)=>a+b,0));
+    return { label:m, data, backgroundColor: coresMes[i % coresMes.length] };
+  });
+
+  const totalPorProcesso = processos.map(p => entries.filter(e=>e.processo===p)
+    .reduce((s,e)=>s+Number(e.quantidade||0),0));
+  totalPorProcesso.push(totalPorProcesso.reduce((a,b)=>a+b,0));
+  datasets.push({ label:'Total Geral', data: totalPorProcesso, backgroundColor:'#e8a33d' });
+
+  if(chartIspInstance) chartIspInstance.destroy();
+  chartIspInstance = new Chart(canvas, {
+    type:'bar',
+    data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{labels:{color:'#eceff2'}} },
+      scales:{
+        x:{ticks:{color:'#8c95a2'}, grid:{color:'#2b313a'}},
+        y:{ticks:{color:'#8c95a2'}, grid:{color:'#2b313a'}, beginAtZero:true}
+      }
+    }
+  });
+}
+
+document.getElementById('btnIspAdd').addEventListener('click', async ()=>{
+  const mes = document.getElementById('ispNovoMes').value.trim();
+  const processo = document.getElementById('ispNovoProcesso').value.trim().toUpperCase();
+  const quantidade = Number(document.getElementById('ispNovaQtd').value)||0;
+  if(!mes || !processo) return;
+  STATE.isp.entries.push({id:newId(), mes, processo, quantidade});
+  document.getElementById('ispNovoMes').value = '';
+  document.getElementById('ispNovoProcesso').value = '';
+  document.getElementById('ispNovaQtd').value = '1';
+  await saveState();
+  renderIsp();
+});
+
+document.getElementById('ispLinhas').addEventListener('change', async (e)=>{
+  const input = e.target.closest('.isp-campo');
+  if(!input) return;
+  const tr = input.closest('tr');
+  const entry = STATE.isp.entries.find(x=>x.id===tr.dataset.ispId);
+  if(!entry) return;
+  const campo = input.dataset.campo;
+  if(campo==='quantidade') entry.quantidade = Number(input.value)||0;
+  else if(campo==='processo') entry.processo = input.value.trim().toUpperCase();
+  else entry.mes = input.value.trim();
+  await saveState();
+  renderChartIsp();
+});
+
+/* ===================== INSPEÇÃO DE CÂMERA ===================== */
+
+function renderInspecaoAll(){
+  renderInspChecklist();
+  renderInspObs();
+  renderGravMeses();
+  renderClickMeses();
+  renderChartGravacoes();
+  renderChartClickSeg();
+}
+
+function renderInspChecklist(){
+  const container = document.getElementById('inspChecklist');
+  const checklist = STATE.inspecao.checklist;
+  container.innerHTML = Object.keys(checklist).map(cat=>{
+    const locais = checklist[cat];
+    return `
+      <div class="insp-categoria">
+        <div class="insp-titulo">${escapeHtml(cat)}</div>
+        <div class="insp-locais">
+          ${Object.keys(locais).map(local=>{
+            const {meta, feito} = locais[local];
+            const boxes = Array.from({length:meta}, (_,i)=>i+1).map(n=>
+              `<button class="insp-box ${n<=feito?'feito':''}" data-acao="insp-toggle" data-cat="${escapeHtml(cat)}" data-local="${escapeHtml(local)}" data-num="${n}">${n}</button>`
+            ).join('');
+            return `
+              <div class="insp-local">
+                <div class="insp-local-topo">
+                  <span class="insp-local-nome">${escapeHtml(local)}</span>
+                  <input type="number" class="insp-meta-input" min="1" value="${meta}" data-acao-input="insp-meta" data-cat="${escapeHtml(cat)}" data-local="${escapeHtml(local)}" title="Meta">
+                </div>
+                <div class="insp-boxes">${boxes}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('inspChecklist').addEventListener('change', async (e)=>{
+  const input = e.target.closest('[data-acao-input="insp-meta"]');
+  if(!input) return;
+  const cat = input.dataset.cat, local = input.dataset.local;
+  let meta = Number(input.value)||1;
+  if(meta<1) meta = 1;
+  const cell = STATE.inspecao.checklist[cat][local];
+  cell.meta = meta;
+  if(cell.feito > meta) cell.feito = meta;
+  await saveState();
+  renderInspChecklist();
+});
+
+function renderInspObs(){
+  const el = document.getElementById('inspObs');
+  if(document.activeElement !== el) el.value = STATE.inspecao.observacao || '';
+}
+document.getElementById('inspObs').addEventListener('change', async (e)=>{
+  STATE.inspecao.observacao = e.target.value;
+  await saveState();
+});
+
+function renderGravMeses(){
+  const container = document.getElementById('gravMeses');
+  const meses = STATE.inspecao.gravacoes.meses;
+  container.innerHTML = meses.map((m,i)=>`
+    <div class="mes-card">
+      <div class="mes-nome">${m.mes}</div>
+      <div class="campo-linha"><label>Meta</label><input type="number" min="0" value="${m.meta}" data-tipo="grav-meta" data-idx="${i}"></div>
+      <div class="campo-linha"><label>Entrega</label><input type="number" min="0" value="${m.entrega}" data-tipo="grav-entrega" data-idx="${i}"></div>
+    </div>
+  `).join('');
+  const anoEl = document.getElementById('gravAno');
+  if(document.activeElement !== anoEl) anoEl.value = STATE.inspecao.gravacoes.ano || '';
+}
+
+document.getElementById('gravMeses').addEventListener('change', async (e)=>{
+  const input = e.target.closest('input[data-tipo]');
+  if(!input) return;
+  const idx = Number(input.dataset.idx);
+  const mes = STATE.inspecao.gravacoes.meses[idx];
+  if(input.dataset.tipo==='grav-meta') mes.meta = Number(input.value)||0;
+  if(input.dataset.tipo==='grav-entrega') mes.entrega = Number(input.value)||0;
+  await saveState();
+  renderChartGravacoes();
+});
+document.getElementById('gravAno').addEventListener('change', async (e)=>{
+  STATE.inspecao.gravacoes.ano = e.target.value.trim();
+  await saveState();
+  renderChartGravacoes();
+});
+
+function renderClickMeses(){
+  const container = document.getElementById('clickMeses');
+  const meses = STATE.inspecao.clickSeg.meses;
+  container.innerHTML = meses.map((m,i)=>`
+    <div class="mes-card">
+      <div class="mes-nome">${m.mes}</div>
+      <div class="campo-linha"><label>Aumento</label><input type="number" min="0" value="${m.aumento}" data-tipo="click-aumento" data-idx="${i}"></div>
+      <div class="campo-linha"><label>Diminuição</label><input type="number" min="0" value="${m.diminuicao}" data-tipo="click-diminuicao" data-idx="${i}"></div>
+      <div class="campo-linha"><label>Total</label><input type="number" min="0" value="${m.total}" data-tipo="click-total" data-idx="${i}"></div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('clickMeses').addEventListener('change', async (e)=>{
+  const input = e.target.closest('input[data-tipo]');
+  if(!input) return;
+  const idx = Number(input.dataset.idx);
+  const mes = STATE.inspecao.clickSeg.meses[idx];
+  if(input.dataset.tipo==='click-aumento') mes.aumento = Number(input.value)||0;
+  if(input.dataset.tipo==='click-diminuicao') mes.diminuicao = Number(input.value)||0;
+  if(input.dataset.tipo==='click-total') mes.total = Number(input.value)||0;
+  await saveState();
+  renderChartClickSeg();
+});
+
+function renderChartGravacoes(){
+  const canvas = document.getElementById('chartGravacoes');
+  if(!canvas || canvas.offsetParent===null || typeof Chart==='undefined') return;
+  const meses = STATE.inspecao.gravacoes.meses;
+  if(chartGravInstance) chartGravInstance.destroy();
+  chartGravInstance = new Chart(canvas, {
+    type:'bar',
+    data:{
+      labels: meses.map(m=>m.mes),
+      datasets:[
+        {label:'Meta', data: meses.map(m=>m.meta), backgroundColor:'#4c9eeb'},
+        {label:'Entrega', data: meses.map(m=>m.entrega), backgroundColor:'#e8a33d'}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{labels:{color:'#eceff2'}} },
+      scales:{
+        x:{ticks:{color:'#8c95a2'}, grid:{color:'#2b313a'}},
+        y:{ticks:{color:'#8c95a2'}, grid:{color:'#2b313a'}, beginAtZero:true}
+      }
+    }
+  });
+}
+
+function renderChartClickSeg(){
+  const canvas = document.getElementById('chartClickSeg');
+  if(!canvas || canvas.offsetParent===null || typeof Chart==='undefined') return;
+  const meses = STATE.inspecao.clickSeg.meses;
+  if(chartClickInstance) chartClickInstance.destroy();
+  chartClickInstance = new Chart(canvas, {
+    type:'bar',
+    data:{
+      labels: meses.map(m=>m.mes),
+      datasets:[
+        {label:'Aumento', data: meses.map(m=>m.aumento), backgroundColor:'#3ecf8e'},
+        {label:'Diminuição', data: meses.map(m=>m.diminuicao), backgroundColor:'#ef5b5b'},
+        {label:'Total', data: meses.map(m=>m.total), backgroundColor:'#8c95a2'}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{labels:{color:'#eceff2'}} },
+      scales:{
+        x:{ticks:{color:'#8c95a2'}, grid:{color:'#2b313a'}},
+        y:{ticks:{color:'#8c95a2'}, grid:{color:'#2b313a'}, beginAtZero:true}
+      }
+    }
+  });
+}
+
+/* ===================== FIM ISP / INSPEÇÃO ===================== */
+
+/* ===================== TRATATIVAS ===================== */
+
+function popularTipoSelect(){
+  const sel = document.getElementById('tratTipo');
+  if(sel.options.length) return;
+  sel.innerHTML = TIPOS_INSPECAO.map(t=>`<option value="${t.key}">${escapeHtml(t.label)}</option>`).join('');
+  popularNormaSelect(TIPOS_INSPECAO[0].key);
+}
+
+function popularNormaSelect(tipoKey){
+  const tipo = TIPOS_INSPECAO.find(t=>t.key===tipoKey) || TIPOS_INSPECAO[0];
+  const sel = document.getElementById('tratNorma');
+  sel.innerHTML = tipo.normas.map(n=>`<option value="${n.codigo}">${n.codigo} — ${escapeHtml(n.descricao)}</option>`).join('');
+}
+
+function normaPorCodigo(codigo){
+  for(const t of TIPOS_INSPECAO){
+    const n = t.normas.find(x=>x.codigo===codigo);
+    if(n) return n;
+  }
+  return null;
+}
+
+function tipoLabelPorKey(key){
+  const t = TIPOS_INSPECAO.find(t=>t.key===key);
+  return t ? t.label : key;
+}
+
+function refreshPlacasDatalist(){
+  const dl = document.getElementById('tratPlacasExistentes');
+  dl.innerHTML = STATE.vehicles.map(v=>`<option value="${escapeHtml(v.placa)}">`).join('');
+}
+
+document.getElementById('tratPlaca').addEventListener('input', (e)=>{
+  const v = STATE.vehicles.find(x=>x.placa.toUpperCase()===e.target.value.trim().toUpperCase());
+  if(v) document.getElementById('tratFrota').value = v.frota;
+});
+
+document.getElementById('tratTipo').addEventListener('change', (e)=>{
+  popularNormaSelect(e.target.value);
+});
+
+document.getElementById('btnTratAdd').addEventListener('click', async ()=>{
+  const placa = document.getElementById('tratPlaca').value.trim().toUpperCase();
+  const frota = document.getElementById('tratFrota').value.trim();
+  const tipoInspecao = document.getElementById('tratTipo').value;
+  const normaCodigo = document.getElementById('tratNorma').value;
+  const data = document.getElementById('tratData').value || new Date().toISOString().slice(0,10);
+  const observacao = document.getElementById('tratObsNova').value.trim();
+
+  if(!placa || !normaCodigo) return;
+
+  STATE.tratativas.entries.push({
+    id:newId(), placa, frota, tipoInspecao, normaCodigo, data, observacao
+  });
+  await saveState();
+
+  document.getElementById('tratPlaca').value = '';
+  document.getElementById('tratFrota').value = '';
+  document.getElementById('tratObsNova').value = '';
+  document.getElementById('tratData').value = '';
+
+  renderTratativas();
+});
+
+function renderTratativas(){
+  popularTipoSelect();
+  refreshPlacasDatalist();
+  renderTratativasTabela();
+  renderFiltroNormaTratativas();
+  renderChartTratativas();
+}
+
+function renderTratativasTabela(){
+  const tbody = document.getElementById('tratLinhas');
+  const entries = STATE.tratativas.entries.slice().sort((a,b)=> (b.data||'').localeCompare(a.data||''));
+  if(entries.length===0){
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--text-muted);font-style:italic;padding:14px 8px;">Nenhuma tratativa lançada ainda.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = entries.map(e=>{
+    const norma = normaPorCodigo(e.normaCodigo);
+    const gravBadge = norma ? `<span class="grav-badge ${norma.gravidade}">${norma.gravidade==='GRAVISSIMA'?'Gravíssima':(norma.gravidade==='GRAVE'?'Grave':'Leve')}</span>` : '';
+    return `
+    <tr data-trat-id="${e.id}">
+      <td><span class="plate mono" style="font-size:12px;padding:3px 6px;">${escapeHtml(e.placa)}</span></td>
+      <td class="mono">${escapeHtml(e.frota||'—')}</td>
+      <td style="font-size:12.5px;color:var(--text-muted);">${escapeHtml(tipoLabelPorKey(e.tipoInspecao))}</td>
+      <td class="norma-cell">${gravBadge}<span class="cod">${escapeHtml(e.normaCodigo)}</span><span class="desc">${norma?escapeHtml(norma.descricao):''}</span></td>
+      <td class="mono" style="font-size:12.5px;">${fmtData(e.data)}</td>
+      <td><input type="text" class="trat-obs-campo" data-id="${e.id}" value="${escapeHtml(e.observacao||'')}" placeholder="Observação"></td>
+      <td class="col-acao"><button class="btn btn-sm btn-icon" data-acao="trat-excluir" data-id="${e.id}" title="Excluir">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('tratLinhas').addEventListener('change', async (e)=>{
+  const input = e.target.closest('.trat-obs-campo');
+  if(!input) return;
+  const entry = STATE.tratativas.entries.find(x=>x.id===input.dataset.id);
+  if(!entry) return;
+  entry.observacao = input.value;
+  await saveState();
+});
+
+function renderFiltroNormaTratativas(){
+  const sel = document.getElementById('tratFiltroNorma');
+  const atual = sel.value;
+  const codigosUsados = [...new Set(STATE.tratativas.entries.map(e=>e.normaCodigo))];
+  sel.innerHTML = '<option value="">Todas as tratativas</option>' +
+    codigosUsados.map(c=>{
+      const n = normaPorCodigo(c);
+      return `<option value="${c}">${c}${n?' — '+escapeHtml(n.descricao.slice(0,50)):''}</option>`;
+    }).join('');
+  if(codigosUsados.includes(atual)) sel.value = atual;
+}
+
+document.getElementById('tratFiltroNorma').addEventListener('change', renderChartTratativas);
+
+function renderChartTratativas(){
+  const canvas = document.getElementById('chartTratativas');
+  if(!canvas || canvas.offsetParent===null || typeof Chart==='undefined') return;
+
+  const filtro = document.getElementById('tratFiltroNorma').value;
+  const entries = filtro ? STATE.tratativas.entries.filter(e=>e.normaCodigo===filtro) : STATE.tratativas.entries;
+
+  const contagemPorFrota = {};
+  entries.forEach(e=>{
+    const chave = e.frota ? `Frota ${e.frota}` : e.placa;
+    contagemPorFrota[chave] = (contagemPorFrota[chave]||0) + 1;
+  });
+  const labels = Object.keys(contagemPorFrota).sort((a,b)=> contagemPorFrota[b]-contagemPorFrota[a]);
+  const valores = labels.map(l=>contagemPorFrota[l]);
+
+  if(chartTratativasInstance) chartTratativasInstance.destroy();
+  chartTratativasInstance = new Chart(canvas, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label: filtro ? `Ocorrências — ${filtro}` : 'Total de tratativas',
+        data: valores,
+        backgroundColor:'#e8a33d'
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ticks:{color:'#8c95a2'}, grid:{color:'#2b313a'}},
+        y:{ticks:{color:'#8c95a2', stepSize:1}, grid:{color:'#2b313a'}, beginAtZero:true}
+      }
+    }
+  });
+}
+
+/* ===================== FIM TRATATIVAS ===================== */
+
+document.addEventListener('click', async (e)=>{
+  const acaoBtn = e.target.closest('[data-acao]');
+  if(!acaoBtn) return;
+  const acao = acaoBtn.dataset.acao;
+
+  if(acao==='isp-excluir'){
+    e.stopPropagation();
+    STATE.isp.entries = STATE.isp.entries.filter(x=>x.id!==acaoBtn.dataset.id);
+    await saveState();
+    renderIsp();
+    return;
+  }
+
+  if(acao==='insp-toggle'){
+    e.stopPropagation();
+    const cat = acaoBtn.dataset.cat, local = acaoBtn.dataset.local, num = Number(acaoBtn.dataset.num);
+    const cell = STATE.inspecao.checklist[cat][local];
+    cell.feito = (cell.feito === num) ? num - 1 : num;
+    await saveState();
+    renderInspChecklist();
+    return;
+  }
+
+  if(acao==='trat-excluir'){
+    e.stopPropagation();
+    STATE.tratativas.entries = STATE.tratativas.entries.filter(x=>x.id!==acaoBtn.dataset.id);
+    await saveState();
+    renderTratativas();
+    return;
+  }
 });
 
 (async function init(){
