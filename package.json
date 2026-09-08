@@ -1,0 +1,12 @@
+{
+  "name": "controle-coletas",
+  "version": "1.0.0",
+  "description": "Controle de coletas de gravacoes da frota",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
