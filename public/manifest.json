@@ -4,8 +4,8 @@
   "description": "Controle de coletas de gravações da frota - CSRT Energia",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#10131a",
-  "theme_color": "#10131a",
+  "background_color": "#002D56",
+  "theme_color": "#002D56",
   "icons": [
     {
       "src": "/icons/icon-192.png",

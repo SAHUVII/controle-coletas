@@ -173,7 +173,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // icones e manifest sao publicos (precisam carregar ate na tela de login)
-  if (urlPath === '/manifest.json' || urlPath.startsWith('/icons/')) {
+  if (urlPath === '/manifest.json' || urlPath.startsWith('/icons/') || urlPath.startsWith('/splash/')) {
     const safePath = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, '');
     serveFile(res, path.join(__dirname, 'public', safePath));
     return;
