@@ -88,7 +88,14 @@ function sendJSON(res, status, body, extraHeaders) {
 
 function serveFile(res, filePath) {
   const ext = path.extname(filePath);
-  const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'application/javascript' };
+  const types = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+    '.json': 'application/manifest+json',
+    '.png': 'image/png',
+    '.ico': 'image/x-icon'
+  };
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end('Nao encontrado'); return; }
     res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream' });
@@ -162,6 +169,13 @@ const server = http.createServer(async (req, res) => {
 
   if (urlPath === '/login') {
     serveFile(res, path.join(__dirname, 'public', 'login.html'));
+    return;
+  }
+
+  // icones e manifest sao publicos (precisam carregar ate na tela de login)
+  if (urlPath === '/manifest.json' || urlPath.startsWith('/icons/')) {
+    const safePath = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, '');
+    serveFile(res, path.join(__dirname, 'public', safePath));
     return;
   }
 

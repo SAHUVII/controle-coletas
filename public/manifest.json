@@ -1,0 +1,21 @@
+{
+  "name": "Controle de Coletas",
+  "short_name": "Coletas",
+  "description": "Controle de coletas de gravações da frota - CSRT Energia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#10131a",
+  "theme_color": "#10131a",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
