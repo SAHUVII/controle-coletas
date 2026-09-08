@@ -167,6 +167,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // rota publica e leve, so para servicos de keep-alive evitarem que o app durma
+  if (urlPath === '/ping') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('ok');
+    return;
+  }
+
   if (urlPath === '/login') {
     serveFile(res, path.join(__dirname, 'public', 'login.html'));
     return;
