@@ -373,6 +373,14 @@
   .nc-lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
   .nc-lightbox button{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.08);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;}
 
+  .nc-video-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .nc-video-thumb{position:relative;width:160px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:#000;}
+  .nc-video-thumb video{width:160px;height:100px;object-fit:cover;display:block;background:#000;}
+  .nc-video-thumb button{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(10,14,17,.75);border:none;color:#fff;font-size:13px;cursor:pointer;}
+  .nc-video-thumb .nc-video-dur{position:absolute;bottom:3px;right:3px;background:rgba(10,14,17,.8);color:#fff;font-size:10px;padding:1px 5px;border-radius:4px;font-family:'IBM Plex Mono',monospace;pointer-events:none;}
+  .nc-video-add{width:160px;height:100px;border-radius:8px;border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);font-size:11px;background:transparent;cursor:pointer;flex-shrink:0;}
+  .nc-video-add:hover{border-color:var(--accent);color:var(--accent);}
+
 </style>
 </head>
 <body>
@@ -2113,7 +2121,7 @@ function ncBlank(){
     gravidade:'GRAVISSIMA', origem_nc:'', setor:'', supervisor:'', encarregado:'', motorista:'', dt_cadastro_nc:'',
     equipe:'', gravissima_para:'', descricao_previa_nc:'', reincidencia:'', num_rnc_vinculada:'',
     acao_imediata_prazo:'', acao_imediata_responsavel:'', acao_corretiva_prazo:'', acao_corretiva_responsavel:'',
-    foto_evidencia:'', status_nc:'', eficaz:'', penalidade:'', observacao:'', fotos:[], __ts: Date.now()
+    foto_evidencia:'', status_nc:'', eficaz:'', penalidade:'', observacao:'', fotos:[], videos:[], __ts: Date.now()
   };
 }
 
@@ -2257,6 +2265,7 @@ function renderListaNC(){
 
 function ncCardHtml(r){
   const fotos = r.fotos||[];
+  const videos = r.videos||[];
   const fotosHtml = fotos.length ? `<div class="nc-card-photos">${fotos.slice(0,4).map(f=>`<img src="${f.dataUrl}" data-nc-lightbox="1" alt="foto">`).join('')}${fotos.length>4?`<div class="nc-card-photos-more">+${fotos.length-4}</div>`:''}</div>` : '';
   const desc = r.descricao_padrao_nc||'';
   return `
@@ -2284,6 +2293,8 @@ function ncCardHtml(r){
       <span>Data: <b>${escapeHtml(r.dt_cadastro_nc||'—')}</b></span>
       <span>Encarregado: <b>${escapeHtml(r.encarregado||'—')}</b></span>
       <span>Penalidade: <b>${escapeHtml(r.penalidade||'—')}</b></span>
+      ${fotos.length ? `<span>📷 ${fotos.length} foto(s)</span>` : ''}
+      ${videos.length ? `<span>🎬 ${videos.length} vídeo(s)</span>` : ''}
     </div>
     ${fotosHtml}
   </div>`;
@@ -2311,19 +2322,80 @@ function ncPhotoThumbsHtml(){
 function ncPhotoAddTileHtml(){
   return `<button type="button" class="nc-photo-add" id="ncBtnAddPhoto">📷<span>Adicionar</span></button>`;
 }
-function ncPhotoSectionHtml(){
+
+function fmtDuracaoVideo(seg){
+  seg = Math.max(0, Math.round(seg||0));
+  const m = Math.floor(seg/60), s = seg%60;
+  return m+':'+String(s).padStart(2,'0');
+}
+function ncVideoThumbsHtml(){
+  return (ncDraft.videos||[]).map((v,i)=>`<div class="nc-video-thumb"><video src="${v.dataUrl}" controls muted preload="metadata"></video><span class="nc-video-dur">${fmtDuracaoVideo(v.duration)}</span><button type="button" data-nc-remove-video="${i}">&times;</button></div>`).join('');
+}
+function ncVideoAddTileHtml(){
+  return `<button type="button" class="nc-video-add" id="ncBtnAddVideo">🎬<span>Adicionar</span></button>`;
+}
+function refreshNCVideoGrid(){
+  const grid = document.getElementById('ncVideoGrid');
+  if(!grid) return;
+  grid.innerHTML = ncVideoThumbsHtml()+ncVideoAddTileHtml();
+  bindNCVideoGridButtons();
+}
+function bindNCVideoGridButtons(){
+  const addBtn = document.getElementById('ncBtnAddVideo');
+  if(addBtn) addBtn.addEventListener('click', ()=>document.getElementById('ncVideoInput').click());
+  document.querySelectorAll('[data-nc-remove-video]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.dataset.ncRemoveVideo,10);
+      ncDraft.videos.splice(idx,1);
+      refreshNCVideoGrid();
+    });
+  });
+}
+function processarVideoFile(file){
+  return new Promise((resolve,reject)=>{
+    if(!file.type || file.type.indexOf('video/')!==0){ resolve(null); return; }
+    const MAX_SIZE = 40*1024*1024;
+    if(file.size > MAX_SIZE){
+      reject(new Error('O vídeo "'+file.name+'" é muito grande (máx. ~40MB). Comprima o vídeo antes de anexar.'));
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const videoEl = document.createElement('video');
+    videoEl.preload = 'metadata';
+    videoEl.onloadedmetadata = ()=>{
+      const duracao = videoEl.duration;
+      URL.revokeObjectURL(url);
+      if(duracao > 300){
+        reject(new Error('O vídeo "'+file.name+'" tem '+fmtDuracaoVideo(duracao)+' — o limite é 5 minutos.'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = ()=> resolve({ name:file.name, dataUrl: reader.result, duration: Math.round(duracao), type:file.type||'video/mp4' });
+      reader.onerror = ()=> reject(new Error('Não foi possível ler o vídeo "'+file.name+'".'));
+      reader.readAsDataURL(file);
+    };
+    videoEl.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('Não foi possível ler o vídeo "'+file.name+'".')); };
+    videoEl.src = url;
+  });
+}function ncPhotoSectionHtml(){
   return `
   <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
     <div style="flex:1 1 260px;">
+      <label style="font-size:12px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;">Fotos</label>
       <div class="nc-photo-grid" id="ncPhotoGrid">${ncPhotoThumbsHtml()}${ncPhotoAddTileHtml()}</div>
       <input type="file" id="ncPhotoInput" accept="image/*" multiple style="display:none">
     </div>
-    <div class="nc-field" style="flex:1 1 260px;">
-      <label>Observação</label>
-      <textarea class="tall" data-nc-field="observacao">${escapeHtml(ncDraft.observacao||'')}</textarea>
+    <div style="flex:1 1 260px;">
+      <label style="font-size:12px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;">Vídeos (até 5 min cada)</label>
+      <div class="nc-video-grid" id="ncVideoGrid">${ncVideoThumbsHtml()}${ncVideoAddTileHtml()}</div>
+      <input type="file" id="ncVideoInput" accept="video/*" multiple style="display:none">
     </div>
   </div>
-  <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Anexe fotos da evidência de campo e registre observações adicionais sobre esta não conformidade.</div>`;
+  <div class="nc-field" style="margin-top:16px;">
+    <label>Observação</label>
+    <textarea class="tall" data-nc-field="observacao">${escapeHtml(ncDraft.observacao||'')}</textarea>
+  </div>
+  <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Anexe fotos e vídeos curtos (máx. 5 minutos cada) da evidência de campo, e registre observações adicionais.</div>`;
 }
 
 function drawerNCHtml(){
@@ -2447,6 +2519,21 @@ function bindDrawerNCEvents(){
     refreshNCPhotoGrid();
     fileInput.value = '';
   });
+  bindNCVideoGridButtons();
+  const videoInput = document.getElementById('ncVideoInput');
+  videoInput.addEventListener('change', async ()=>{
+    const files = Array.from(videoInput.files||[]);
+    if(!files.length) return;
+    const resultados = await Promise.allSettled(files.map(processarVideoFile));
+    const ok = resultados.filter(r=>r.status==='fulfilled' && r.value).map(r=>r.value);
+    const erros = resultados.filter(r=>r.status==='rejected').map(r=>r.reason.message);
+    if(ok.length){
+      ncDraft.videos = (ncDraft.videos||[]).concat(ok);
+      refreshNCVideoGrid();
+    }
+    if(erros.length) alert(erros.join('\n'));
+    videoInput.value = '';
+  });
   document.getElementById('ncBtnSalvar').addEventListener('click', salvarNC);
   document.getElementById('ncBtnPdf').addEventListener('click', ()=>gerarPdfNC(ncDraft));
 }
@@ -2529,6 +2616,12 @@ function gerarPdfNC(entry){
       x += imgW + gap;
     });
     y += imgH + 20;
+  }
+
+  const videos = entry.videos||[];
+  if(videos.length){
+    tituloSecao('Vídeos Anexados (o conteúdo do vídeo não é incluído neste PDF)');
+    videos.forEach((v,i)=> campo('Vídeo '+(i+1), (v.name||'vídeo') + ' — duração ' + fmtDuracaoVideo(v.duration)));
   }
 
   const nomeArquivo = 'NC_' + (entry.num_inspecao||'sem-numero') + '_' + (entry.cod_nc||'').replace(/[^a-zA-Z0-9]/g,'') + '.pdf';
