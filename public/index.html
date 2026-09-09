@@ -304,6 +304,74 @@
     max-width:90vw; text-align:center;
   }
 
+  /* ===================== Não Conformidades (NC) ===================== */
+  .nc-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;}
+  .nc-toolbar input[type=text], .nc-toolbar select{
+    background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:9px 12px;border-radius:8px;font-size:13.5px;font-family:inherit;
+  }
+  .nc-toolbar input[type=text]{min-width:240px;flex:1;}
+  .nc-toolbar select{min-width:150px;}
+
+  .nc-list{display:flex;flex-direction:column;gap:10px;}
+  .nc-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+  .nc-card:hover{border-color:#3a4149;}
+  .nc-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  .nc-card-head-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .nc-id{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text-muted);}
+  .nc-desc{font-size:13.5px;margin-top:8px;line-height:1.45;}
+  .nc-meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:12px;color:var(--text-muted);}
+  .nc-meta b{color:var(--text);font-weight:600;}
+  .nc-actions{display:flex;gap:6px;flex-shrink:0;}
+  .mini-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .nc-empty{text-align:center;padding:50px 20px;color:var(--text-muted);border:1px dashed var(--border);border-radius:12px;}
+
+  .nc-card-photos{display:flex;gap:6px;margin-top:10px;}
+  .nc-card-photos img{width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid var(--border);cursor:zoom-in;}
+  .nc-card-photos-more{width:40px;height:40px;border-radius:6px;background:var(--surface-2);color:var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+
+  .nc-overlay{
+    position:fixed;inset:0;background:rgba(6,10,13,.65);z-index:5000;
+    display:flex;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .18s;
+  }
+  .nc-overlay.open{opacity:1;pointer-events:auto;}
+  .nc-drawer{
+    width:min(680px,100%);height:100%;background:var(--surface);border-left:1px solid var(--border);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;
+    transform:translateX(24px);transition:transform .2s;
+  }
+  .nc-overlay.open .nc-drawer{transform:translateX(0);}
+  .nc-drawer-header{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .nc-drawer-header h3{margin:0;font-size:16px;}
+  .nc-drawer-header p{margin:2px 0 0;font-size:12px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;}
+  .nc-drawer-body{padding:20px 22px 30px;overflow-y:auto;flex:1;}
+  .nc-drawer-footer{display:flex;justify-content:space-between;padding:14px 22px;border-top:1px solid var(--border);flex-shrink:0;}
+  .nc-section-title{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700;margin:20px 0 10px;}
+  .nc-section-title:first-child{margin-top:0;}
+  .nc-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .nc-field-grid.single{grid-template-columns:1fr;}
+  @media (max-width:560px){.nc-field-grid{grid-template-columns:1fr;}}
+  .nc-field label{font-size:12px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;}
+  .nc-field input, .nc-field select, .nc-field textarea{
+    width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+    border-radius:7px;padding:9px 10px;font-family:inherit;font-size:13.5px;
+  }
+  .nc-field textarea{min-height:64px;resize:vertical;}
+  .nc-field textarea.tall{min-height:110px;}
+  .nc-close-x{background:transparent;border:none;color:var(--text-muted);font-size:20px;width:30px;height:30px;border-radius:7px;cursor:pointer;}
+  .nc-close-x:hover{background:var(--surface-2);color:var(--text);}
+
+  .nc-photo-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .nc-photo-thumb{position:relative;width:84px;height:84px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--bg);}
+  .nc-photo-thumb img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block;}
+  .nc-photo-thumb button{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(10,14,17,.75);border:none;color:#fff;font-size:13px;cursor:pointer;}
+  .nc-photo-add{width:84px;height:84px;border-radius:8px;border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);font-size:11px;background:transparent;cursor:pointer;}
+  .nc-photo-add:hover{border-color:var(--accent);color:var(--accent);}
+
+  .nc-lightbox{position:fixed;inset:0;background:rgba(6,10,13,.9);z-index:6000;display:flex;align-items:center;justify-content:center;padding:30px;}
+  .nc-lightbox img{max-width:100%;max-height:100%;border-radius:8px;}
+  .nc-lightbox button{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.08);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;}
+
 </style>
 </head>
 <body>
@@ -328,6 +396,7 @@
   <button class="tab-btn" data-tab="isp">ISP Virtual por Processo</button>
   <button class="tab-btn" data-tab="inspecao">Inspeção de Câmera</button>
   <button class="tab-btn" data-tab="tratativas">Tratativas</button>
+  <button class="tab-btn" data-tab="naoconf">Não Conformidades</button>
 </div>
 
 <div id="view-coletas">
@@ -488,6 +557,60 @@
   </div>
 </div>
 
+<div id="view-naoconf" class="view-wrap" style="display:none">
+  <div class="stats" id="statsNaoConf"></div>
+
+  <div class="panel">
+    <h2>Não conformidades por mês</h2>
+    <p class="panel-sub">Com base na data de cadastro de cada NC — já lançadas (até hoje), previstas (datas futuras) e reincidências.</p>
+    <div class="chart-box"><canvas id="chartNaoConf"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div>
+        <h2 style="margin:0;">Não conformidades gravíssimas</h2>
+        <p class="panel-sub" style="margin:2px 0 0;">Inspeções, ações imediatas/corretivas e evidências fotográficas.</p>
+      </div>
+      <button class="btn btn-accent" id="btnNovaNC">+ Nova NC</button>
+    </div>
+    <div class="nc-toolbar">
+      <input type="text" id="ncBusca" placeholder="Buscar por nº, código, descrição, responsável...">
+      <select id="ncFiltroSetor"><option value="">Todos os setores</option></select>
+      <select id="ncFiltroStatus">
+        <option value="">Todos os status</option>
+        <option value="CONCLUIDO">Concluído</option>
+        <option value="EM ANDAMENTO">Em andamento</option>
+        <option value="PENDENTE">Pendente</option>
+      </select>
+      <select id="ncFiltroOrigem">
+        <option value="">Origem</option>
+        <option value="CEMIG">CEMIG</option>
+        <option value="CSRT">CSRT</option>
+      </select>
+      <select id="ncFiltroTipo">
+        <option value="">Tipo inspeção</option>
+        <option value="ISP">ISP</option>
+        <option value="ISVF">ISVF</option>
+        <option value="ISVV">ISVV</option>
+        <option value="ISVCA">ISVCA</option>
+        <option value="ISVACE">ISVACE</option>
+        <option value="ISVMA">ISVMA</option>
+      </select>
+      <select id="ncFiltroEficaz">
+        <option value="">Eficácia</option>
+        <option value="SIM">Sim</option>
+        <option value="NÃO">Não</option>
+        <option value="PARCIAL">Parcial</option>
+      </select>
+    </div>
+    <div class="nc-list" id="ncLista"></div>
+  </div>
+</div>
+
+<div id="ncDrawerLayer"></div>
+<div id="ncLightboxLayer"></div>
+
 <div id="popoverLayer"></div>
 
 <div id="avisoSalvamento" class="aviso-salvar" style="display:none;"></div>
@@ -513,6 +636,10 @@ const DEFAULT_VEHICLES = [
   ["TEH5E70","NÃO","CONSTRUÇÃO"],["TZS9D41","NÃO","CONSTRUÇÃO"],["UBE9A58","9775","QUARTETO"],
   ["UBF9J73","9741","MANUTENÇÃO"],["UHW4H82","4732","MANUTENÇÃO"],["UHW5B72","NÃO INFORMADA","QUARTETO"]
 ].map(([placa,frota,processo],i)=>({id:'v'+i, placa, frota, processo}));
+
+const DEFAULT_NAOCONF = [{"num_inspecao": 124053, "responsavel_lancamento": "LUCIANA  BALBINO", "tipo_inspecao": "ISVV", "cod_nc": "VGV02", "descricao_padrao_nc": "Veículo com pneus sem condições de uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "QUARTETO", "supervisor": "THIAGO HENRIQUE", "encarregado": "ISAC FABIANO DE ASSIS", "motorista": "ALEXANDRE DOS ANJOS DA SILVA", "dt_cadastro_nc": "14/05/2026", "equipe": "BRUNO JORGE\nJULIO JOSE\nRAFAEL LUCAS\nPEDRO AUGUSTO", "gravissima_para": "EXEMPLO:\nPARA O MOTORISTA\n E ENCARREGADO\n\nMOTORISTA: JULIO JORGE\nENCARREGADO: PEDRO AUGUSTO", "descricao_previa_nc": "VL01 - Câmeras lateral lado direito e esquerdo do veiculo mal posicionada para registro das atividades.\nVG02 -Lateral esquerdo do caminhão abaixo do banheiro danificado com ferrugem e apresentando trincas solda solta.\nVL01 - Lanterna do lado esquerdo com improviso amarrada com fita isolante.\nVL01 - Lanterna do lado direito quebrada.\nVL03 - Equipamento moto-hidráulico ou escada veicular giratória com data de fabricação fora da especificação do contrato ou sem número de identificação. \n\nVGV01 - Pneus com a lateral danificada, talao.\n\nPLACA: HGV2132\n\nEtiqueta de identificação da sapata lado direito do caminhão danificada sem as informações.\nobservação: amarração de carga em cima do caminhão irregular na carroceria parte de madeira. Motorista foi orientação sobre a forma correta.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "28/05/2026", "acao_imediata_responsavel": "ADIMILSON", "acao_corretiva_prazo": "10/06/2026", "acao_corretiva_responsavel": "ADIMILSON", "foto_evidencia": "A01", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 128256, "responsavel_lancamento": "CHRISTIAN  SARDINHA", "tipo_inspecao": "ISVV", "cod_nc": "VGV02", "descricao_padrao_nc": "Veículo com pneus sem condições de uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE ALVES CIRINO", "encarregado": "NC", "motorista": "ROSIMARQUE ALVES CIRINO", "dt_cadastro_nc": "28/07/2026", "equipe": "ROSIMARQUE ALVES CIRINO", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR ROSIMARQUE", "descricao_previa_nc": "Durante a inspeção do veículo, foram identificadas as seguintes não conformidades: o pneu sobressalente (estepe) encontra-se em péssimo estado de conservação, com desgaste abaixo do indicador de desgaste da banda de rodagem (TWI) e presença de rachaduras, tornando sua utilização insegura. A lente da lanterna traseira esquerda (lado do motorista) apresenta manchas que comprometem a visualização nítida da iluminação e podem prejudicar a sinalização do veículo. Além disso, o para-choque traseiro encontra-se parcialmente solto, necessitando de reparo para garantir sua correta fixação e a integridade do veículo.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "20/08/2026", "acao_imediata_responsavel": "ADIMILSON", "acao_corretiva_prazo": "19/08/2026", "acao_corretiva_responsavel": "ADIMILSON", "foto_evidencia": "A02", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 123754, "responsavel_lancamento": "HUGO  RAYKKONEN", "tipo_inspecao": "ISVMA", "cod_nc": "MAGV04", "descricao_padrao_nc": "Transformadores e demais equipamentos que possam conter óleo armazenados em bacias de contenção.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "ALMOXARIFADO", "supervisor": "MARIANA MAIA DOS SANTOS", "encarregado": "NC", "motorista": "NC", "dt_cadastro_nc": "11/05/2026", "equipe": "MARIANA MAIA DOS SANTOS", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA A COLABORADORA MARIANA MAIA DOS SANTOS", "descricao_previa_nc": "Foi realizada a inspeção virtual dia 11/05/2026 em nosso pátio, que, os transformadores estão armazenados de forma inadequada pois, estão fora da área delimitada e apropriada para armazenagem do equipamento. Tendo em vista que este cenário se mantém devido a falta de espaço nas baias aonde são armazenados os transformadores. A empresa terceirizada NLR (Nova Logistica Reversa), precisa coletar os equipamentos danificados para liberar espaço.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "25/05/2026", "acao_imediata_responsavel": "MARIANA MAIA DOS SANTOS", "acao_corretiva_prazo": "20/07/2026", "acao_corretiva_responsavel": "CARLOS ADRIANO", "foto_evidencia": "A03", "status_nc": "PENDENTE", "eficaz": "NÃO", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 128818, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISP", "cod_nc": "GV618", "descricao_padrao_nc": "Transitar ou permanecer na área com possibilidade de projeção de carga suspensa (através de talha tirfor, talha de corrente,\n moitão de cordas, guindaste veicular, etc) ou de galhos e árvores durante o processo de supressão.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE ALVES CIRINO", "encarregado": "MARCELINO GOMES VIANA", "motorista": "ROBERTO DOS SANTOS COUTO", "dt_cadastro_nc": "27/07/2026", "equipe": "AGNALDO APARECIDO PINHEIRO\nDANIL DE CARVALHO LEITE\nMARCELINO GOMES VIANA\nPEDRO LUCINDO VIEIRA\nROBERTO DOS SANTOS COUTO\nROMEU MAGELA SOARES", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO ENCARREGADO MARCELINO GOMES VIANA", "descricao_previa_nc": "Atividade de Substituição de poste, Equipe encarregado Marcelino Gomes Viana.", "reincidencia": "sim", "num_rnc_vinculada": "128391", "acao_imediata_prazo": "04/08/2026", "acao_imediata_responsavel": "MARGARETE", "acao_corretiva_prazo": "16/08/2026", "acao_corretiva_responsavel": "MARGARETE", "foto_evidencia": "A04", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 128391, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISP", "cod_nc": "GV618", "descricao_padrao_nc": "Transitar ou permanecer na área com possibilidade de projeção de carga suspensa (através de talha tirfor, talha de corrente,\n moitão de cordas, guindaste veicular, etc) ou de galhos e árvores durante o processo de supressão.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE ALVES CIRINO", "encarregado": "MARCELINO GOMES VIANA", "motorista": "ROBERTO DOS SANTOS COUTO", "dt_cadastro_nc": "24/07/2026", "equipe": "MARCELINO GOMES VIANA\nPEDRO LUCINDO VIEIRA\nROBERTO DOS SANTOS COUTO\nROMEU MAGELA SOARES", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO MOTORISTA  ROBERTO DOS SANTOS COUTO", "descricao_previa_nc": "Equipe dentro da area de movimentação de carga suspensa.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "28/07/2026", "acao_imediata_responsavel": "MARGARETE", "acao_corretiva_prazo": "10/08/2026", "acao_corretiva_responsavel": "MARGARETE", "foto_evidencia": "A05", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 125550, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISP", "cod_nc": "GV604", "descricao_padrao_nc": "Não conferir/solicitar as condições requeridas para a execução das atividades, conforme norma específica.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "QUARTETO", "supervisor": "BRUNO PIMENTA", "encarregado": "EDMAR DOS SANTOS", "motorista": "MARCIO HENRIQUE PEREIRA", "dt_cadastro_nc": "29/04/2026", "equipe": "EDMAR DOS SANTOS\nJOSE CARLOS DIAS DE ASSIS\nMARCIO HENRIQUE PEREIRA\nVITOR RODRIGUES DOS SANTOS", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA PARA TODOS OS COLABORADORES: EDMAR DOS SANTOS\nJOSE CARLOS DIAS DE ASSIS\nMARCIO HENRIQUE PEREIRA\nVITOR RODRIGUES DOS SANTOS", "descricao_previa_nc": "Foi realizado a manobra de ré no caminhão sem a orientação da equipe/encarregado, onde contribuiu também para intercorrência do Quase acidente.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "12/05/2026", "acao_imediata_responsavel": "BRUNO PIMENTA", "acao_corretiva_prazo": "18/05/2026", "acao_corretiva_responsavel": "BRUNO PIMENTA", "foto_evidencia": "A06", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Escrita"}, {"num_inspecao": 128641, "responsavel_lancamento": "MARCOS MACIEL", "tipo_inspecao": "ISP", "cod_nc": "GV133", "descricao_padrao_nc": "Não realizar ensaios elétricos em equipamentos do SEP de acordo com as\n especificações técnicas e padrões de segurança normatizados.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "CONTRUÇÃO", "supervisor": "ADILSON PAULO DE ASSUNÇÃO", "encarregado": "RONALDO CRISTIANO GOMES", "motorista": "GILVAN APARECIDO DOS SANTOS", "dt_cadastro_nc": "30/07/2026", "equipe": "CESAR A DE PAULA FRANCISCO\nGILVAN APARECIDO DOS SANTOS RAMOS\nJOSE LEIDES PEREIRA DA SILVA\nLOURIVAL DA GAMA ROMUALDO\nRONALDO CRISTIANO DE ASSIS\nRONALDO VENTURA GOMES\nWERLIS FERREIRA DA SILVA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR DO ALMOXARIFADO CESAR A DE PAULA FRANCISCO", "descricao_previa_nc": "L-515 Aplicada ao  funcionário devido ao desgaste evidente na luva de vaqueta, realizou a troca no dia seguinte 31/07/2026.\nL-526 Aplicado a empresa, pois no estoque não possui cones para realizar a troca.\nL-307 Aplicado a empresa, pois ainda não foi regularizado a situação das fds nos produtos químicos utilizados.\nL-0103 Aplicado ao encarregado, foi identificado um lençol danificado.\nG-0319 Foi aplicado a toda equipe, de imediato foi regularizado, os funcionário retiraram de propósito os acrílicos.\nG-0133 Foi aplicado ao responsável por atualizar a documentação no Drive foi constatado 8 laudos divergentes na pasta do encarregado, o encarregado sinalizou no momento da inspeção a demora para serem atualizados, foi repassado para o setor responsável Almoxarifado de equipamento.\nGV133 - Não realizar ensaios elétricos em equipamentos do SEP de acordo com as especificações técnicas e padrões de segurança normatizados.\nFrota: 8945\nPlaca: OPY8564", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "31/07/2026", "acao_imediata_responsavel": "ADILSON PAULO DE ASSUNÇÃO", "acao_corretiva_prazo": "10/08/2026", "acao_corretiva_responsavel": "MARGARETE", "foto_evidencia": "A07", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 123642, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISP", "cod_nc": "GV125", "descricao_padrao_nc": "Não sinalizar e delimitar a área de trabalho em atividades com alto\n potencial de risco de acidente conforme procedimentos específicos.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "QUARTETO", "supervisor": "THIAGO HENRIQUE", "encarregado": "EDMAR DOS SANTOS", "motorista": "MARCIO HENRIQUE PEREIRA", "dt_cadastro_nc": "29/04/2026", "equipe": "EDMAR DOS SANTOS\nJOSE CARLOS DIAS DE ASSIS\nMARCIO HENRIQUE PEREIRA\nVITOR RODRIGUES DOS SANTOS", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO ENCARREGADO EDMAR DOS SANTOS", "descricao_previa_nc": "Foi analisado as filmagens do veículo Placa OQH3976, e constatou um erro gravíssimo\nfrente a sinalização no local de trabalho.\nA inspeção foi realizada em campo no mesmo dia após o ocorrido onde constatou a falta de sinalização no ambiente e que ocasionou um incidente com perca material, mas que poderia resultar em uma ocorrência de potencial alto. A técnica Margarete acompanhou in-loco no dia do ocorrido e a medida diciplinar foi aplicada no dia 14/05/2026 pelos supervisores Bruno e Thiago.", "reincidencia": "sim", "num_rnc_vinculada": null, "acao_imediata_prazo": "14/05/2026", "acao_imediata_responsavel": "THIAGO HENRIQUE", "acao_corretiva_prazo": "16/05/2026", "acao_corretiva_responsavel": "MARGARETE", "foto_evidencia": "A08", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Escrita"}, {"num_inspecao": 127020, "responsavel_lancamento": "LUCIANA  BALBINO", "tipo_inspecao": "ISP", "cod_nc": "GV105", "descricao_padrao_nc": "Não instalar corretamente os subconjuntos de aterramento temporário\n necessários às atividades ou instalá-los/retirá-los na sequência incorreta.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "CONTRUÇÃO", "supervisor": "ADILSON DE JESUS MARQUES", "encarregado": "RAFAEL LAZARO BARBOSA", "motorista": "ADILSON APARECIDO ARAUJO", "dt_cadastro_nc": "03/07/2026", "equipe": "ADEILSON APARECIDO ARAUJO\nANTONIO CARLOS DE SOUZA\nCARLOS GILBERTO SOUZA\nELCIO CUPERTINO MALAQUIAS\nGLEIDSON HENRIQUE DOS SANTOS\nPEREIRA\nGUSTAVO HENRIQUE MENDES DE\nOLIVEIRA\nRAFAEL LAZARO BARBOSA\nVITOR ISAC CARVALHO RODRIGUES\nWELLINGTON LOPES DE OLIVEIRA\nWELTON RODRIGUES FONSECA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR WELTON RODRIGUES FONSECA", "descricao_previa_nc": "GV105 - O instalador Welton Rodrigues realizou o aterramento da rede de média tensão (MT) a partir do solo, utilizando luvas de vaqueta. Conforme estabelece a IT 110001 da ASTA, a execução de aterramento a partir do solo é permitida apenas para redes monofásicas de baixa tensão (BT), não sendo permitida para redes trifásicas. Ao ser questionado sobre o procedimento adotado, o encarregado informou que, devido ao atraso na execução da manobra, autorizou o instalador a realizar o aterramento diretamente do solo.\n\nG0133 - Vara telescopia com laudo no drive vencido. \n\nG0212 -O instalador Vitor Isac realizou a soltura do ramal diretamente do poste, sem a utilização da carretilha. A atividade foi executada em local com circulação de pedestres e trânsito de motociclistas, nas proximidades do posto de saúde, expondo terceiros ao risco de acidentes devido à ausência do controle adequado da carga durante a descida do ramal.\n\nG0606 - Foi observado funcionário utilizando óculos de segurança com lente incolor em atividade que exigia o uso de óculos com lente escura.\n\n\nOBS: Todos os funcionários estavam utilizando corretamente os Equipamentos de Proteção Individual (EPIs). A área de trabalho estava bem sinalizada.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "10/07/2026", "acao_imediata_responsavel": "ADILSON DE JESUS MARQUES", "acao_corretiva_prazo": "20/07/2026", "acao_corretiva_responsavel": "LUCIANA  BALBINO", "foto_evidencia": "A09", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 124877, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISVF", "cod_nc": "FGV07", "descricao_padrao_nc": "As cintas apresentam corrosões ou desgastes, estando em condições\n inadequadas, ou com limpeza e conservação inadequada dos olhais.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "CONTRUÇÃO", "supervisor": "ADILSON DE JESUS MARQUES", "encarregado": "ADEILSON APARECIDO ARAUJO", "motorista": "JHONNY FERREIRA DE FARIAS", "dt_cadastro_nc": "06/05/2026", "equipe": "CICERO LEANDRO C DOS ANJOS\nJOHNNY FERREIRA DE FARIAS\nJOSE LEIDES PEREIRA DA SILVA\nLOURIVAL DA GAMA ROMUALDO\nPAULO CESAR VIEIRA SIQUEIRA\nRENAN GERALDO MIQUILINO MARTINS\nRONALDO CRISTIANO DE ASSIS\nRONALDO VENTURA GOMES", "gravissima_para": "A NÃO CONFORMIDADE  FOI APLICADA PARA O COLABORADOR JOHNNY FERREIRA.", "descricao_previa_nc": "Todos os itens citados foram trocados no momento da inspeção o que não foi possível realizar a substituição foi realizada abaixa e remoção do veiculo:\n\n04 lençóis de isolantes danificados.(baixa)\n05 placas não opere danificados.( baixa).\n03 catracas danificadas ( baixa).\n02 aterramento monofásico (trocou).\n07 bainhas de ferramentas (troca).\n03 alavancas (troca).\n02 cintas de amarração (troca).\n01 par de luvas isolantes (baixa)\n01 escada de degrau de fibra danificada (troca).", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "10/05/2026", "acao_imediata_responsavel": "ADILSON DE JESUS MARQUES", "acao_corretiva_prazo": "28/05/2026", "acao_corretiva_responsavel": "MARGARETE", "foto_evidencia": "A10", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 127772, "responsavel_lancamento": "CHRISTIAN  SARDINHA", "tipo_inspecao": "ISVF", "cod_nc": "FGV04", "descricao_padrao_nc": "Mantas, lençóis, mangas, luvas de borracha, danificados ou impróprios para uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "LINHA VIVA", "supervisor": "MARCELIS MARTINS MANJA", "encarregado": "IDELVANO CIPRIANO DO CARMO", "motorista": "IDELVANO CIPRIANO DO CARMO", "dt_cadastro_nc": "24/07/2026", "equipe": "IDELVANO CIPRIANO DO CARMO DIEGO JUNIO LOPES FONTES", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA PARA O COLABORADOR IDELVANO CIPRIANO DO CARMO", "descricao_previa_nc": "Manta de borracha com suspeita de comprometimento de sua integridade. Devido às dúvidas quanto à sua eficácia, o equipamento foi retirado de uso e encaminhado para laudo técnico para uma segunda avaliação.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "24/07/2026", "acao_imediata_responsavel": "CHRISTIAN SARDINHA", "acao_corretiva_prazo": "20/08/2026", "acao_corretiva_responsavel": "THAYSA DO NASCIMENTO", "foto_evidencia": "A11", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 127150, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISVF", "cod_nc": "FGV04", "descricao_padrao_nc": "Mantas, lençóis, mangas, luvas de borracha, danificados ou impróprios para uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "LINHA VIVA", "supervisor": "MARCELIS MARTINS MANJA", "encarregado": "JEFFERSON MORAES AMARAL", "motorista": "JEFFERSON MORAES AMARAL", "dt_cadastro_nc": "07/07/2026", "equipe": "JEFFERSON MORAES AMARAL", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR JEFFERSON MORAES AMARAL", "descricao_previa_nc": "Frota-7044- Durante inspeção programada realizada pela técnica Margarete Oliveira encontro se uma pequena perfuração em uma das mantas de cobertura, sendo solicitado de imediato a substituição da mesma.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "07/07/2026", "acao_imediata_responsavel": "MARGARETE", "acao_corretiva_prazo": "30/08/2026", "acao_corretiva_responsavel": "LUCIANA  BALBINO", "foto_evidencia": "A12", "status_nc": "EM ANDAMENTO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 127148, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISVF", "cod_nc": "FGV04", "descricao_padrao_nc": "Mantas, lençóis, mangas, luvas de borracha, danificados ou impróprios para uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "LINHA VIVA", "supervisor": "MARCELIS MARTINS MANJA", "encarregado": "ARLINDO DE SOUZA LIMA", "motorista": "ADEILSON APARECIDO ARAUJO", "dt_cadastro_nc": "03/07/2026", "equipe": "ADEILSON APARECIDO ARAUJO\nANEZIO DE JESUS MARQUES\nARLINDO DE SOUZA LIMA\nGLAIDSON COSTA C DOS SANTOS\nPAULO LUIZ DA SILVA\nPEDRO MOREIRA MARQUES\nWELTON RODRIGUES FONSECA", "gravissima_para": "A NÃO NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR ARLINDO DE SOUZA LIMA", "descricao_previa_nc": "Frota-8013- Na inspeção realizada pela técnica em segurança do trabalho Margarete Oliveira ,foi constada 02 lençol danificadas ,sendo realizada de imediato a troca pela equipe inspecionada junto ao almoxarifado.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "03/07/2026", "acao_imediata_responsavel": "MARGARETE", "acao_corretiva_prazo": "30/07/2026", "acao_corretiva_responsavel": "MARGARETE", "foto_evidencia": "A13", "status_nc": "PENDENTE", "eficaz": "PARCIAL", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 124814, "responsavel_lancamento": "LUCIANA  BALBINO", "tipo_inspecao": "ISVF", "cod_nc": "FGV04", "descricao_padrao_nc": "Mantas, lençóis, mangas, luvas de borracha, danificados ou impróprios para uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE ALVES CIRINO", "encarregado": "MARCELINO GOMES VIANA", "motorista": "ROBERTO DOS SANTOS COUTO", "dt_cadastro_nc": "22/05/2026", "equipe": "BRUNO HENRIQUE FLAUSINO MACIEL\nMARCELINO GOMES VIANA\nPEDRO LUCINDO VIEIRA\nROBERTO DOS SANTOS COUTO\nROMEU MAGELA SOARES\nVITOR GUSTAVO J DE ALMEIDA", "gravissima_para": "A NÃO NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR ROMEU MAGELA SOARES", "descricao_previa_nc": "L003 - 02 - cones danificados \nG205 - 01 - Volt amperímetro sem ponta de prova \nG209 - 04 - 02 tesourão danificado, 01 catraca danificada, 01 bandola danificada.\nGV04 -02 - 01 par de luva 17KV vencida 01/26, 01 par de luva 1KV vencida.", "reincidencia": "sim", "num_rnc_vinculada": null, "acao_imediata_prazo": "22/05/2026", "acao_imediata_responsavel": "LUCIANA BALBINO", "acao_corretiva_prazo": "30/05/2026", "acao_corretiva_responsavel": "THAYSA DO NASCIMENTO", "foto_evidencia": "A14", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 124877, "responsavel_lancamento": "LUCIANA  BALBINO", "tipo_inspecao": "ISVF", "cod_nc": "FGV04", "descricao_padrao_nc": "Mantas, lençóis, mangas, luvas de borracha, danificados ou impróprios para uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "CONTRUÇÃO", "supervisor": "ADILSON DE JESUS MARQUES", "encarregado": "RONALDO CRISTIANO GOMES", "motorista": "JHONNY FERREIRA DE FARIAS", "dt_cadastro_nc": "06/05/2026", "equipe": "CICERO LEANDRO C DOS ANJOS\nJOHNNY FERREIRA DE FARIAS\nJOSE LEIDES PEREIRA DA SILVA\nLOURIVAL DA GAMA ROMUALDO\nPAULO CESAR VIEIRA SIQUEIRA\nRENAN GERALDO MIQUILINO MARTINS\nRONALDO CRISTIANO DE ASSIS\nRONALDO VENTURA GOMES", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR LOURIVAL DA GAMA", "descricao_previa_nc": "Todos os itens citados foram trocados no momento da inspeção o que não foi possível realizar a substituição foi realizada abaixa e remoção do veiculo:\n\n04 lençóis de isolantes danificados.(baixa)\n05 placas não opere danificados.( baixa).\n03 catracas danificadas ( baixa).\n02 aterramento monofásico (trocou).\n07 bainhas de ferramentas (troca).\n03 alavancas (troca).\n02 cintas de amarração (troca).\n01 par de luvas isolantes (baixa)\n01 escada de degrau de fibra danificada (troca).", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "18/05/2026", "acao_imediata_responsavel": "LUCIANA BALBINO", "acao_corretiva_prazo": "30/05/2026", "acao_corretiva_responsavel": "THAYSA DO NASCIMENTO", "foto_evidencia": "A15", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 125507, "responsavel_lancamento": "MARGARETE", "tipo_inspecao": "ISVF", "cod_nc": "FGV03", "descricao_padrao_nc": "Conjunto de cinto de segurança tipo paraquedista/alpinista e acessórios\n armazenados inadequadamente ou em mau estado de conservação.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "TRIO", "supervisor": "GUSTAVO HENRIQUE", "encarregado": "LEOMARCIO LUIZ DE PADUA", "motorista": "NC", "dt_cadastro_nc": "09/06/2026", "equipe": "LEOMARCIO LUIZ DE PADUA ROCHA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR LEOMARCIO LUIZ DE PADUA ROCHA", "descricao_previa_nc": "REALIZADA A TROCA DE \nIMEDIATO DO CINTO DE SEGURANÇA DO COLABORADOR .", "reincidencia": "sim", "num_rnc_vinculada": null, "acao_imediata_prazo": "09/06/2026", "acao_imediata_responsavel": "MARGARETE", "acao_corretiva_prazo": "20/06/2026", "acao_corretiva_responsavel": "THAYSA DO NASCIMENTO", "foto_evidencia": "A16", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 124877, "responsavel_lancamento": "LUCIANA  BALBINO", "tipo_inspecao": "ISVF", "cod_nc": "FGV01", "descricao_padrao_nc": "Conjunto de aterramento temporário despadronizado ou sem condições adequadas de uso.", "gravidade": "GRAVISSIMA", "origem_nc": "CSRT", "setor": "CONTRUÇÃO", "supervisor": "ADILSON DE JESUS MARQUES", "encarregado": "RONALDO CRISTIANO GOMES", "motorista": "JHONNY FERREIRA DE FARIAS", "dt_cadastro_nc": "06/05/2026", "equipe": "CICERO LEANDRO C DOS ANJOS\nJOHNNY FERREIRA DE FARIAS\nJOSE LEIDES PEREIRA DA SILVA\nLOURIVAL DA GAMA ROMUALDO\nPAULO CESAR VIEIRA SIQUEIRA\nRENAN GERALDO MIQUILINO MARTINS\nRONALDO CRISTIANO DE ASSIS\nRONALDO VENTURA GOMES", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR RONALDO CRISTIANO DE ASSIS", "descricao_previa_nc": "Todos os itens citados foram trocados no momento da inspeção o que não foi possível realizar a substituição foi realizada abaixa e remoção do veiculo:\n\n04 lençóis de isolantes danificados.(baixa)\n05 placas não opere danificados.( baixa).\n03 catracas danificadas ( baixa).\n02 aterramento monofásico (trocou).\n07 bainhas de ferramentas (troca).\n03 alavancas (troca).\n02 cintas de amarração (troca).\n01 par de luvas isolantes (baixa)\n01 escada de degrau de fibra danificada (troca).", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "18/05/2026", "acao_imediata_responsavel": "LUCIANA BALBINO", "acao_corretiva_prazo": "20/06/2026", "acao_corretiva_responsavel": "THAYSA DO NASCIMENTO", "foto_evidencia": "A17", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 433924, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGÃO", "tipo_inspecao": "ISP", "cod_nc": "GV0404", "descricao_padrao_nc": "Mantiver em campo, empregado com treinamentos ou ASO vencidos ou realizando atividades não informadas no GESET", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "CONTRUÇÃO", "supervisor": "ADILSON", "encarregado": "ARLINDO", "motorista": "ADEILSON APARECIDO", "dt_cadastro_nc": "24/03/2026", "equipe": "ARLINDO DE SOUZA LIMA\nJOAO BATISTA PEREIRA DA SILVA\nANTONIO CARLOS DE SOUZA\nCLEDISON MEIRELES\nGLEIDSON HENRIQUE DOS SANTOS\nJHONI BISPO SANTANA\nLUCAS EDGAR FERREIRA SILVA\nPAULO LUIZ DA SILVA\nPEDRO MOREIRA MARQUES\nWELTON RODRIGUES FONSECA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR JOÃO BATISTA", "descricao_previa_nc": "01 GV0404 - O colaborador com João Batista doc.\nvencido, mesmo após o vencimento de quatro PDAs;(1º\nvenceu 12/2023; 2º 06/2024; 3º 12/2024; 4º 12/2025)\nOBS:\n01 - No ato da inspeção foi abordado a importância da\nAR e a execução das atividades conforme os\nprocedimentos específicos\n02 - Atividades atendendo Ns:124.130.0341", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "24/04/2026", "acao_imediata_responsavel": "MARCOS MACIEL", "acao_corretiva_prazo": "CONCLUÍDO", "acao_corretiva_responsavel": "MARCOS MACIEL", "foto_evidencia": "A18", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "foi gerado um plano de ação para verificar o geset em relação a treinamento e aso"}, {"num_inspecao": 440777, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGAO", "tipo_inspecao": "ISP", "cod_nc": "GV0404", "descricao_padrao_nc": "Mantiver em campo, empregado com treinamentos ou ASO vencidos ou realizando \natividades não informadas no GESET", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE", "encarregado": "JOÃO BATISTA", "motorista": "JOÃO PAULO", "dt_cadastro_nc": "14/04/2026", "equipe": "AGNALDO APARECIDO PINHEIRO\nJOAO BATISTA DE PAULA\nCELSO LIMA MENDES", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR AGNALDO APARECIDO PINHEIRO", "descricao_previa_nc": "01 GV0404 - ASO do Instalador AGNALDO APARECIDO\nPINHEIRO sem Aptidão para NR 10, contrariando NR10 e\no novo PCMSO.\nObs.:\na) No ato da inspeção foi abordado a importância da AR\ne a execução das atividades conforme os procedimentos\nespecíficos", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "CONCLUÍDO", "acao_imediata_responsavel": "MARCOS MACIEL", "acao_corretiva_prazo": "CONCLUÍDO", "acao_corretiva_responsavel": "MARCOS MACIEL", "foto_evidencia": "A19", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "foi gerado um plano de ação para verificar o geset em relação a treinamento e aso"}, {"num_inspecao": 440777, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGAO", "tipo_inspecao": "ISP", "cod_nc": "GV604", "descricao_padrao_nc": "Não conferir/solicitar as condições requeridas para a execução das atividades,  conforme norma específica.", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE", "encarregado": "JOÃO BATISTA", "motorista": "JOÃO PAULO", "dt_cadastro_nc": "14/04/2026", "equipe": "AGNALDO APARECIDO PINHEIRO\nJOAO BATISTA DE PAULA\nCELSO LIMA MENDES", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO SUPERVISOR ROSIMARQUE", "descricao_previa_nc": "01 GV0604 - Para o Supervisor do processo por\ndescumprimento de Requisito Legal, Norma\nRegulamentadora - NR4. Desconvergência dos doc. de\nSST, uma vez que a CSRT apresentou ao MTE a\nDeclaração do SESMT integrado/compartilhado da\nNCSR(300 funcionários), mas, que possui 1.200\nfuncionários, conforme seu PGR.\n- Agrava-se ao fato, de tanto a CSRT como a NCSR não\nter no mobilizado no Geset no seu SESMT nenhum\nMédico; nenhum Enfermeiro/T.Enfermagem; nenhum\nEngenheiro de Segurança e nenhum TST na CSRT, tendo\napenas 03 TST na NCSR;\n- Da Declaração ao MTE não fazem mais parte do seu\nquadro (ALMIRANDO NETO DE OLIVEIRA ALVES; WESLEY\nPRUDENCIO DE SOUSA; NAYARA SANTOS FERREIRA;\nWILSON DE AQUINO RODRIGUES; além do Eng. de\nSegurança WASHINGTON LUIZ SOARES DE CARVALHO e\no GUSTAVO está como Supervisor; e o Médico VINICIO\nCAVALCANTE MOREIRA por apenas 04 horas).", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "CONCLUÍDO", "acao_imediata_responsavel": "MARCOS MACIEL", "acao_corretiva_prazo": "CONCLUÍDO", "acao_corretiva_responsavel": "MARCOS MACIEL", "foto_evidencia": "A20", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 441063, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGAO", "tipo_inspecao": "ISP", "cod_nc": "GV0404", "descricao_padrao_nc": "Mantiver em campo, empregado com treinamentos ou ASO vencidos ou realizando \natividades não informadas no GESET", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "CONTRUÇÃO", "supervisor": "ADILSON", "encarregado": "SÉRGIO PEREIRA", "motorista": "CARLOS VIEIRA", "dt_cadastro_nc": "14/04/2026", "equipe": "WELLINGTON LOPES DE OLIVEIRA\nGUSTAVO HENRIQUE MENDES DE OLIVEIRA\nCARLOS VIEIRA DE SOUZA\nCARLOS GILBERTO SOUZA\nCHARLES DIAS DE OLIVEIRA GOMES\nRAFAEL LAZARO BARBOSA\nELCIO CUPERTINO MALAQUIAS\nKeven Luiz de Jesus Silverio", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR CARLOS VIEIRA DE SOUZA", "descricao_previa_nc": "01 GV404 - Treinamento do Motorista CARLOS VIEIRA DE\nSOUZA vencido.\nOBS:\n01 - No ato da inspeção foi abordado a importância da\nAR e a execução das atividades conforme procedimentos\nespecíficos", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "EM \nANDAMENTO", "acao_imediata_responsavel": "LUIZ GUILHERME", "acao_corretiva_prazo": null, "acao_corretiva_responsavel": "ADILSON DE JESUS", "foto_evidencia": "A21", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "foi gerado um plano de ação para verificar o geset em relação a treinamento e aso"}, {"num_inspecao": 441145, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGAO", "tipo_inspecao": "ISP", "cod_nc": "GV0404", "descricao_padrao_nc": "Mantiver em campo, empregado com treinamentos ou ASO vencidos ou realizando \natividades não informadas no GESET", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE", "encarregado": "MARCELINO", "motorista": "ROBERTO DOS SANTOS COUTO", "dt_cadastro_nc": "14/04/2026", "equipe": "MARCELINO GOMES VIANA\nROBERTO DOS SANTOS COUTO\nTIAGO FERNANDES DE OLIVEIRA MENDES 702.299.206-16\nROBSON DO NASCIMENTO RAMOS\nPEDRO LUCINDO VIEIRA\nROMEU MAGELA SOARES\nANTONIO CARLOS FERREIRA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR ANTÔNIO CARLOS FERREIRA", "descricao_previa_nc": "01 GV404 - ASO sem aptidão para NR10, contrariando\nNR10 e PCMSO.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "CONCLUÍDO", "acao_imediata_responsavel": "MARCOS MACIEL", "acao_corretiva_prazo": "CONCLUÍDO", "acao_corretiva_responsavel": "MARCOS MACIEL", "foto_evidencia": "A22", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 441145, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGAO", "tipo_inspecao": "ISP", "cod_nc": "GV604", "descricao_padrao_nc": "Não conferir/solicitar as condições requeridas para a execução das atividades,  conforme norma específica.", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "MANUTENÇÃO", "supervisor": "ROSIMARQUE", "encarregado": "MARCELINO", "motorista": "ROBERTO DOS SANTOS COUTO", "dt_cadastro_nc": "14/04/2026", "equipe": "MARCELINO GOMES VIANA\nROBERTO DOS SANTOS COUTO\nTIAGO FERNANDES DE OLIVEIRA MENDES 702.299.206-16\nROBSON DO NASCIMENTO RAMOS\nPEDRO LUCINDO VIEIRA\nROMEU MAGELA SOARES\nANTONIO CARLOS FERREIRA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO COLABORADOR ANTÔNIO CARLOS FERREIRA", "descricao_previa_nc": "01 GV404 - ASO sem aptidão para NR10, contrariando NR10 e PCMSO.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "CONCLUÍDO", "acao_imediata_responsavel": "MARCOS MACIEL", "acao_corretiva_prazo": "CONCLUÍDO", "acao_corretiva_responsavel": "MARCOS MACIEL", "foto_evidencia": "A23", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}, {"num_inspecao": 475757, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGAO", "tipo_inspecao": "ISP", "cod_nc": "GV604", "descricao_padrao_nc": "Não conferir/solicitar as condições requeridas para a execução das atividades,  conforme norma específica.", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "CONTRUÇÃO", "supervisor": "ADILSON", "encarregado": "SÉRGIO PEREIRA", "motorista": "CARLOS VIEIRA", "dt_cadastro_nc": "24/06/2026", "equipe": "RAFAEL LAZARO BARBOSA\nCARLOS VIEIRA DE SOUZA\nELCIO CUPERTINO MALAQUIAS\nGUSTAVO HENRIQUE MENDES DE OLIVEIRA\nVITOR ISAC CARVALHO RODRIGUES\nCARLOS GILBERTO SOUZA\nNILTON PATRIK BATISTA DOS SANTOS\nWagner Pereira Jose\nWELLINGTON LOPES DE OLIVEIRA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO SUPERVISOR ADILSON", "descricao_previa_nc": "01 GV604 - Para o Supervisor de processo, por manter\nem campo empregado irregular no Gset; (CARLOS VIEIRA\nDE\nSOUZA).\nOBS:\n01 - Trata-se de Inspeção Educativa em conjunto com o\nEng. supervisor Mardem M. Pereira (Dia D); no ato da\ninspeção foi abordado a importância da AR e a execução\ndas atividades conforme procedimentos específicos.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "CONCLUÍDO", "acao_imediata_responsavel": "ADILSON DE JESUS", "acao_corretiva_prazo": "CONCLUÍDO", "acao_corretiva_responsavel": "ADILSON DE JESUS", "foto_evidencia": "A24", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "foi gerado um plano de ação para verificar o geset em relação a treinamento e aso"}, {"num_inspecao": 487831, "responsavel_lancamento": "FRANCISCO ASSIS PERDIGAO", "tipo_inspecao": "ISP", "cod_nc": "GV0404", "descricao_padrao_nc": "Mantiver em campo, empregado com treinamentos ou ASO vencidos ou realizando \natividades não informadas no GESET", "gravidade": "GRAVISSIMA", "origem_nc": "CEMIG", "setor": "CONTRUÇÃO", "supervisor": "ADILSON", "encarregado": "ANTÔNIO CARLOS", "motorista": "ANTÔNIO CARLOS", "dt_cadastro_nc": "21/07/2026", "equipe": "ANTONIO CARLOS DE SOUZA\nOTAVIO FERREIRA DE SOUZA", "gravissima_para": "A NÃO CONFORMIDADE FOI APLICADA AO SUPERVISOR ADILSON", "descricao_previa_nc": "01 GV404 - Para o Supervisor do processo por não\nfornecimento de Treinamento de Direção Defensiva de\nVeículos de Grande Porte para Antônio, que dirigia o\nCaminhão com treinamento de direção Defensiva de\ncamionetes e 4x4.\nOBS:\n01 - Suporte de fixação da Fita/Cinta de amarração para o\nbraço do Guindaste Veicular estava quebrado(estava\nregistrado na AR)\n02 - No ato da inspeção foi abordado a importância da\nAR e execução das atividades conforme os\nprocedimentos específicos.", "reincidencia": "não", "num_rnc_vinculada": "não", "acao_imediata_prazo": "CONCLUÍDO", "acao_imediata_responsavel": "ADILSON DE JESUS", "acao_corretiva_prazo": "CONCLUÍDO", "acao_corretiva_responsavel": "ADILSON DE JESUS", "foto_evidencia": "A25", "status_nc": "CONCLUIDO", "eficaz": "SIM", "penalidade": "Advertencia Verbal"}]
+;
+
 
 /* ===================== BASE DE NORMAS (TRATATIVAS) ===================== */
 const NORMAS_VEICULO = [
@@ -987,7 +1114,7 @@ function newId(){
   return 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 }
 
-let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 }, isp:{entries:[]}, inspecao:null, tratativas:{entries:[]} };
+let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 }, isp:{entries:[]}, inspecao:null, tratativas:{entries:[]}, naoconformidades:{entries:[]} };
 let expandedId = null;
 let openPopoverId = null;
 let editingId = null;
@@ -999,6 +1126,7 @@ let chartStatusPizzaInstance = null;
 let chartTratativasInstance = null;
 let chartGravInstance = null;
 let chartClickInstance = null;
+let chartNaoConfInstance = null;
 
 const MESES_ANO = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
 
@@ -1034,6 +1162,12 @@ async function loadState(){
   STATE.isp = (loaded && loaded.isp) ? loaded.isp : {entries:[]};
   STATE.inspecao = (loaded && loaded.inspecao) ? loaded.inspecao : estadoPadraoInspecao();
   STATE.tratativas = (loaded && loaded.tratativas) ? loaded.tratativas : {entries:[]};
+  if(loaded && loaded.naoconformidades && Array.isArray(loaded.naoconformidades.entries)){
+    STATE.naoconformidades = loaded.naoconformidades;
+  }else{
+    STATE.naoconformidades = { entries: DEFAULT_NAOCONF.map(e=>Object.assign({}, e, {id:newId(), fotos:[]})) };
+    await saveState();
+  }
   document.getElementById('fPrazo').value = STATE.config.prazoDias;
 }
 
@@ -1485,10 +1619,12 @@ function switchTab(tab){
   document.getElementById('view-isp').style.display = tab==='isp' ? '' : 'none';
   document.getElementById('view-inspecao').style.display = tab==='inspecao' ? '' : 'none';
   document.getElementById('view-tratativas').style.display = tab==='tratativas' ? '' : 'none';
+  document.getElementById('view-naoconf').style.display = tab==='naoconf' ? '' : 'none';
   if(tab==='coletas') renderChartStatusPizza();
   if(tab==='isp') renderIsp();
   if(tab==='inspecao') renderInspecaoAll();
   if(tab==='tratativas') renderTratativas();
+  if(tab==='naoconf') renderNaoConf();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>{
   b.addEventListener('click', ()=> switchTab(b.dataset.tab));
@@ -1910,6 +2046,428 @@ function renderChartTratativas(){
 
 /* ===================== FIM TRATATIVAS ===================== */
 
+/* ===================== NÃO CONFORMIDADES (NC) ===================== */
+
+const NC_FIELD_LABELS = {
+  num_inspecao: "Nº da Inspeção",
+  responsavel_lancamento: "Responsável Lançamento",
+  tipo_inspecao: "Tipo Inspeção",
+  cod_nc: "Cód. NC",
+  descricao_padrao_nc: "Descrição Padrão NC",
+  gravidade: "Gravidade",
+  origem_nc: "Origem da NC",
+  setor: "Setor",
+  supervisor: "Supervisor",
+  encarregado: "Encarregado",
+  motorista: "Motorista",
+  dt_cadastro_nc: "Data Cadastro NC",
+  equipe: "Equipe",
+  gravissima_para: "Gravíssima para (Empresa/SESMT/Funcionário)",
+  descricao_previa_nc: "Descrição Prévia da NC",
+  reincidencia: "Reincidente?",
+  num_rnc_vinculada: "Nº de RNC Vinculada",
+  acao_imediata_prazo: "Ação Imediata - Prazo",
+  acao_imediata_responsavel: "Ação Imediata - Responsável",
+  acao_corretiva_prazo: "Ação Corretiva - Prazo",
+  acao_corretiva_responsavel: "Ação Corretiva - Responsável",
+  foto_evidencia: "Foto Evidência (Cód.)",
+  status_nc: "Status NC",
+  eficaz: "Eficaz",
+  penalidade: "Penalidade"
+};
+const NC_OPTIONS = {
+  tipo_inspecao: ["ISP","ISVF","ISVV","ISVCA","ISVACE","ISVMA"],
+  gravidade: ["GRAVISSIMA"],
+  origem_nc: ["CEMIG","CSRT"],
+  setor: ["CONTRUÇÃO","MANUTENÇÃO","LINHA VIVA","QUARTETO","TRIO","ALMOXARIFADO","FROTA","SESMT"],
+  reincidencia: ["sim","não"],
+  status_nc: ["CONCLUIDO","EM ANDAMENTO","PENDENTE"],
+  eficaz: ["SIM","NÃO","PARCIAL"]
+};
+const NC_TEXTAREA_FIELDS = ["descricao_padrao_nc","equipe","gravissima_para","descricao_previa_nc"];
+const NC_TALL_FIELDS = ["descricao_previa_nc"];
+const NC_SECTIONS = [
+  { title: "Identificação", fields: ["num_inspecao","dt_cadastro_nc","responsavel_lancamento","tipo_inspecao"] },
+  { title: "Não Conformidade", fields: ["cod_nc","descricao_padrao_nc","gravidade","origem_nc","setor"] },
+  { title: "Envolvidos", fields: ["supervisor","encarregado","motorista","equipe"] },
+  { title: "Detalhamento da Ocorrência", fields: ["gravissima_para","descricao_previa_nc"] },
+  { title: "Reincidência", fields: ["reincidencia","num_rnc_vinculada"] },
+  { title: "Ação Imediata", fields: ["acao_imediata_prazo","acao_imediata_responsavel"] },
+  { title: "Ação Corretiva", fields: ["acao_corretiva_prazo","acao_corretiva_responsavel"] },
+  { title: "Resultado", fields: ["foto_evidencia","status_nc","eficaz","penalidade"] },
+  { title: "Fotos e Evidências", fields: [], type: "photos" }
+];
+const NC_MAX_PHOTO_DIM = 1000;
+const NC_PHOTO_QUALITY = 0.72;
+
+let ncDraft = null;
+
+function ncNormalize(s){
+  return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function ncBlank(){
+  return {
+    id: newId(), num_inspecao:'', responsavel_lancamento:'', tipo_inspecao:'', cod_nc:'', descricao_padrao_nc:'',
+    gravidade:'GRAVISSIMA', origem_nc:'', setor:'', supervisor:'', encarregado:'', motorista:'', dt_cadastro_nc:'',
+    equipe:'', gravissima_para:'', descricao_previa_nc:'', reincidencia:'', num_rnc_vinculada:'',
+    acao_imediata_prazo:'', acao_imediata_responsavel:'', acao_corretiva_prazo:'', acao_corretiva_responsavel:'',
+    foto_evidencia:'', status_nc:'', eficaz:'', penalidade:'', fotos:[], __ts: Date.now()
+  };
+}
+
+function renderNaoConf(){
+  popularFiltroSetorNC();
+  renderStatsNaoConf();
+  renderChartNaoConf();
+  renderListaNC();
+}
+
+function popularFiltroSetorNC(){
+  const sel = document.getElementById('ncFiltroSetor');
+  const atual = sel.value;
+  const setores = [...new Set(STATE.naoconformidades.entries.map(e=>e.setor).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Todos os setores</option>' + setores.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  if(setores.includes(atual)) sel.value = atual;
+}
+
+function ncFiltrados(){
+  const q = ncNormalize(document.getElementById('ncBusca').value);
+  const fSetor = document.getElementById('ncFiltroSetor').value;
+  const fStatus = document.getElementById('ncFiltroStatus').value;
+  const fOrigem = document.getElementById('ncFiltroOrigem').value;
+  const fTipo = document.getElementById('ncFiltroTipo').value;
+  const fEficaz = document.getElementById('ncFiltroEficaz').value;
+  return STATE.naoconformidades.entries.filter(r=>{
+    if(fSetor && r.setor!==fSetor) return false;
+    if(fStatus && r.status_nc!==fStatus) return false;
+    if(fOrigem && r.origem_nc!==fOrigem) return false;
+    if(fTipo && r.tipo_inspecao!==fTipo) return false;
+    if(fEficaz && r.eficaz!==fEficaz) return false;
+    if(q){
+      const hay = ncNormalize([r.num_inspecao,r.cod_nc,r.descricao_padrao_nc,r.supervisor,r.encarregado,r.motorista,r.setor,r.responsavel_lancamento,r.descricao_previa_nc,r.equipe].join(' | '));
+      if(hay.indexOf(q)===-1) return false;
+    }
+    return true;
+  });
+}
+
+function renderStatsNaoConf(){
+  const el = document.getElementById('statsNaoConf');
+  const recs = STATE.naoconformidades.entries;
+  const total = recs.length;
+  const concluidas = recs.filter(r=>r.status_nc==='CONCLUIDO').length;
+  const andamento = recs.filter(r=>r.status_nc==='EM ANDAMENTO').length;
+  const pendentes = recs.filter(r=>r.status_nc==='PENDENTE').length;
+  const reincid = recs.filter(r=>ncNormalize(r.reincidencia)==='sim').length;
+  const base = recs.filter(r=>['SIM','NÃO','PARCIAL'].includes(r.eficaz));
+  const pct = base.length ? Math.round(base.filter(r=>r.eficaz==='SIM').length/base.length*100) : 0;
+  function stat(num,label,cls){ return `<div class="stat ${cls}"><div class="num">${num}</div><div class="lbl">${label}</div></div>`; }
+  el.innerHTML = stat(total,'Total de NCs','') + stat(concluidas,'Concluídas','ok') + stat(andamento,'Em andamento','') + stat(pendentes,'Pendentes','warn') + stat(reincid,'Reincidências','danger') + stat(pct+'%','Ações eficazes','ok');
+}
+
+function ncParseBrDate(str){
+  if(!str) return null;
+  const m = String(str).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m) return null;
+  const d = new Date(+m[3], +m[2]-1, +m[1]);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function renderChartNaoConf(){
+  const canvas = document.getElementById('chartNaoConf');
+  if(!canvas || canvas.offsetParent===null || typeof Chart==='undefined') return;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const buckets = {};
+  STATE.naoconformidades.entries.forEach(r=>{
+    const d = ncParseBrDate(r.dt_cadastro_nc);
+    if(!d) return;
+    const key = d.getFullYear()+'-'+d.getMonth();
+    if(!buckets[key]) buckets[key] = {lancadas:0,futuras:0,reincid:0,date:new Date(d.getFullYear(),d.getMonth(),1)};
+    if(d.getTime()<=now.getTime()) buckets[key].lancadas++; else buckets[key].futuras++;
+    if(ncNormalize(r.reincidencia)==='sim') buckets[key].reincid++;
+  });
+  if(chartNaoConfInstance){ chartNaoConfInstance.destroy(); chartNaoConfInstance=null; }
+  const keys = Object.values(buckets).sort((a,b)=>a.date-b.date);
+  if(!keys.length){
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    return;
+  }
+  const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const labels=[], lancadas=[], futuras=[], reincid=[];
+  let cursor = new Date(keys[0].date);
+  const fim = keys[keys.length-1].date;
+  while(cursor<=fim){
+    const key = cursor.getFullYear()+'-'+cursor.getMonth();
+    const b = buckets[key];
+    labels.push(MESES[cursor.getMonth()]+'/'+String(cursor.getFullYear()).slice(2));
+    lancadas.push(b?b.lancadas:0);
+    futuras.push(b?b.futuras:0);
+    reincid.push(b?b.reincid:0);
+    cursor.setMonth(cursor.getMonth()+1);
+  }
+  chartNaoConfInstance = new Chart(canvas, {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Já lançadas', data:lancadas, backgroundColor:'#3ecf8e'},
+      {label:'Previstas', data:futuras, backgroundColor:'#e8a33d'},
+      {label:'Reincidências', data:reincid, backgroundColor:'#ef5b5b'}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#8c95a2' } } },
+      scales:{
+        x:{ ticks:{color:'#8c95a2'}, grid:{display:false} },
+        y:{ ticks:{color:'#8c95a2', stepSize:1}, grid:{color:'#2b313a'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+function ncBadgeHtml(text, bg, color){
+  return `<span class="mini-badge" style="background:${bg};color:${color}">${escapeHtml(text)}</span>`;
+}
+function ncStatusBadge(status){
+  if(status==='CONCLUIDO') return ncBadgeHtml('Concluído','rgba(62,207,142,.14)','#3ecf8e');
+  if(status==='EM ANDAMENTO') return ncBadgeHtml('Em andamento','rgba(76,158,235,.14)','#4c9eeb');
+  if(status==='PENDENTE') return ncBadgeHtml('Pendente','rgba(232,163,61,.14)','#e8a33d');
+  return '';
+}
+function ncEficazBadge(ef){
+  if(ef==='SIM') return ncBadgeHtml('Eficaz: Sim','rgba(62,207,142,.14)','#3ecf8e');
+  if(ef==='PARCIAL') return ncBadgeHtml('Eficaz: Parcial','rgba(232,163,61,.14)','#e8a33d');
+  if(ef==='NÃO') return ncBadgeHtml('Eficaz: Não','rgba(239,91,91,.14)','#ef5b5b');
+  return '';
+}
+function ncReincidBadge(r){
+  return ncNormalize(r)==='sim' ? ncBadgeHtml('Reincidente','rgba(239,91,91,.14)','#ef5b5b') : '';
+}
+
+function renderListaNC(){
+  const el = document.getElementById('ncLista');
+  const filtrados = ncFiltrados().slice().sort((a,b)=> (b.__ts||0)-(a.__ts||0));
+  if(!filtrados.length){
+    el.innerHTML = '<div class="nc-empty">Nenhuma não conformidade encontrada.</div>';
+    return;
+  }
+  el.innerHTML = filtrados.map(ncCardHtml).join('');
+}
+
+function ncCardHtml(r){
+  const fotos = r.fotos||[];
+  const fotosHtml = fotos.length ? `<div class="nc-card-photos">${fotos.slice(0,4).map(f=>`<img src="${f.dataUrl}" data-nc-lightbox="1" alt="foto">`).join('')}${fotos.length>4?`<div class="nc-card-photos-more">+${fotos.length-4}</div>`:''}</div>` : '';
+  const desc = r.descricao_padrao_nc||'';
+  return `
+  <div class="nc-card" data-nc-id="${r.id}">
+    <div class="nc-card-head">
+      <div class="nc-card-head-left">
+        <span class="nc-id">Nº ${escapeHtml(r.num_inspecao||'—')}</span>
+        <span class="mono" style="font-size:12px;font-weight:700;background:var(--surface-2);padding:3px 8px;border-radius:6px;color:var(--accent);">${escapeHtml(r.cod_nc||'—')}</span>
+        ${ncStatusBadge(r.status_nc)}
+        ${ncEficazBadge(r.eficaz)}
+        ${ncReincidBadge(r.reincidencia)}
+      </div>
+      <div class="nc-actions">
+        <button class="btn btn-sm" data-acao="nc-editar" data-id="${r.id}">Editar</button>
+        <button class="btn btn-sm btn-danger" data-acao="nc-excluir" data-id="${r.id}">Excluir</button>
+      </div>
+    </div>
+    <div class="nc-desc">${escapeHtml(desc.slice(0,180))}${desc.length>180?'…':''}</div>
+    <div class="nc-meta">
+      <span><b>${escapeHtml(r.setor||'—')}</b></span>
+      <span>Origem: <b>${escapeHtml(r.origem_nc||'—')}</b></span>
+      <span>Tipo: <b>${escapeHtml(r.tipo_inspecao||'—')}</b></span>
+      <span>Data: <b>${escapeHtml(r.dt_cadastro_nc||'—')}</b></span>
+      <span>Encarregado: <b>${escapeHtml(r.encarregado||'—')}</b></span>
+      <span>Penalidade: <b>${escapeHtml(r.penalidade||'—')}</b></span>
+    </div>
+    ${fotosHtml}
+  </div>`;
+}
+
+function ncFieldHtml(key){
+  const label = NC_FIELD_LABELS[key]||key;
+  const val = ncDraft[key]==null? '': ncDraft[key];
+  let input;
+  if(NC_OPTIONS[key]){
+    input = `<select data-nc-field="${key}"><option value="">Selecione...</option>${NC_OPTIONS[key].map(o=>`<option value="${escapeHtml(o)}" ${o===val?'selected':''}>${escapeHtml(o)}</option>`).join('')}</select>`;
+  }else if(NC_TEXTAREA_FIELDS.includes(key)){
+    input = `<textarea class="${NC_TALL_FIELDS.includes(key)?'tall':''}" data-nc-field="${key}">${escapeHtml(val)}</textarea>`;
+  }else if(key.indexOf('_prazo')!==-1 || key==='dt_cadastro_nc'){
+    input = `<input type="text" placeholder="dd/mm/aaaa" data-nc-field="${key}" value="${escapeHtml(val)}">`;
+  }else{
+    input = `<input type="text" data-nc-field="${key}" value="${escapeHtml(val)}">`;
+  }
+  return `<div class="nc-field"><label>${escapeHtml(label)}</label>${input}</div>`;
+}
+
+function ncPhotoThumbsHtml(){
+  return (ncDraft.fotos||[]).map((f,i)=>`<div class="nc-photo-thumb"><img src="${f.dataUrl}" data-nc-drawer-lightbox="${i}" alt="foto"><button type="button" data-nc-remove-photo="${i}">&times;</button></div>`).join('');
+}
+function ncPhotoAddTileHtml(){
+  return `<button type="button" class="nc-photo-add" id="ncBtnAddPhoto">📷<span>Adicionar</span></button>`;
+}
+function ncPhotoSectionHtml(){
+  return `
+  <div class="nc-photo-grid" id="ncPhotoGrid">${ncPhotoThumbsHtml()}${ncPhotoAddTileHtml()}</div>
+  <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Anexe fotos da evidência de campo. As imagens ficam salvas junto com este registro.</div>
+  <input type="file" id="ncPhotoInput" accept="image/*" multiple style="display:none">`;
+}
+
+function drawerNCHtml(){
+  const titulo = ncDraft.__isNew ? 'Nova Não Conformidade' : 'Editar Não Conformidade';
+  const sub = ncDraft.__isNew ? 'Preencha os dados da ocorrência' : `Nº ${escapeHtml(ncDraft.num_inspecao||'—')} · ${escapeHtml(ncDraft.cod_nc||'')}`;
+  let body = '';
+  NC_SECTIONS.forEach(sec=>{
+    body += `<div class="nc-section-title">${escapeHtml(sec.title)}</div>`;
+    if(sec.type==='photos'){
+      body += ncPhotoSectionHtml();
+      return;
+    }
+    body += `<div class="nc-field-grid ${sec.fields.length===1?'single':''}">${sec.fields.map(ncFieldHtml).join('')}</div>`;
+  });
+  return `
+  <div class="nc-overlay" id="ncOverlay">
+    <div class="nc-drawer">
+      <div class="nc-drawer-header">
+        <div><h3>${titulo}</h3><p>${sub}</p></div>
+        <button class="nc-close-x" id="ncBtnClose">&times;</button>
+      </div>
+      <div class="nc-drawer-body">${body}</div>
+      <div class="nc-drawer-footer">
+        <button class="btn" id="ncBtnCancelar">Cancelar</button>
+        <button class="btn btn-accent" id="ncBtnSalvar">Salvar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function abrirDrawerNC(entry, isNew){
+  ncDraft = JSON.parse(JSON.stringify(entry));
+  ncDraft.__isNew = !!isNew;
+  const layer = document.getElementById('ncDrawerLayer');
+  layer.innerHTML = drawerNCHtml();
+  const overlay = document.getElementById('ncOverlay');
+  requestAnimationFrame(()=>overlay.classList.add('open'));
+  overlay.addEventListener('mousedown', e=>{ if(e.target===overlay) fecharDrawerNC(); });
+  bindDrawerNCEvents();
+}
+
+function fecharDrawerNC(){
+  const layer = document.getElementById('ncDrawerLayer');
+  const overlay = document.getElementById('ncOverlay');
+  if(!overlay){ layer.innerHTML=''; ncDraft=null; return; }
+  overlay.classList.remove('open');
+  setTimeout(()=>{ layer.innerHTML=''; }, 180);
+  ncDraft = null;
+}
+
+function refreshNCPhotoGrid(){
+  const grid = document.getElementById('ncPhotoGrid');
+  if(!grid) return;
+  grid.innerHTML = ncPhotoThumbsHtml()+ncPhotoAddTileHtml();
+  bindNCPhotoGridButtons();
+}
+
+function bindNCPhotoGridButtons(){
+  const addBtn = document.getElementById('ncBtnAddPhoto');
+  if(addBtn) addBtn.addEventListener('click', ()=>document.getElementById('ncPhotoInput').click());
+  document.querySelectorAll('[data-nc-remove-photo]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.dataset.ncRemovePhoto,10);
+      ncDraft.fotos.splice(idx,1);
+      refreshNCPhotoGrid();
+    });
+  });
+  document.querySelectorAll('[data-nc-drawer-lightbox]').forEach(img=>{
+    img.addEventListener('click', ()=>abrirLightboxNC(img.getAttribute('src')));
+  });
+}
+
+function compressImageFileNC(file){
+  return new Promise((resolve,reject)=>{
+    if(!file.type || file.type.indexOf('image/')!==0){ resolve(null); return; }
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = ()=>{
+        const scale = Math.min(1, NC_MAX_PHOTO_DIM/Math.max(img.width,img.height));
+        const cw = Math.round(img.width*scale), ch = Math.round(img.height*scale);
+        const canvas = document.createElement('canvas');
+        canvas.width=cw; canvas.height=ch;
+        canvas.getContext('2d').drawImage(img,0,0,cw,ch);
+        resolve({ name:file.name, dataUrl: canvas.toDataURL('image/jpeg',NC_PHOTO_QUALITY) });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function abrirLightboxNC(src){
+  const layer = document.getElementById('ncLightboxLayer');
+  layer.innerHTML = `<div class="nc-lightbox" id="ncLightbox"><button id="ncLightboxClose">&times;</button><img src="${src}"></div>`;
+  const box = document.getElementById('ncLightbox');
+  function fechar(){ layer.innerHTML=''; }
+  box.addEventListener('mousedown', e=>{ if(e.target===box) fechar(); });
+  document.getElementById('ncLightboxClose').addEventListener('click', fechar);
+}
+
+function bindDrawerNCEvents(){
+  document.getElementById('ncBtnClose').addEventListener('click', fecharDrawerNC);
+  document.getElementById('ncBtnCancelar').addEventListener('click', fecharDrawerNC);
+  document.querySelectorAll('[data-nc-field]').forEach(el=>{
+    el.addEventListener('input', ()=>{ ncDraft[el.dataset.ncField] = el.value; });
+    el.addEventListener('change', ()=>{ ncDraft[el.dataset.ncField] = el.value; });
+  });
+  bindNCPhotoGridButtons();
+  const fileInput = document.getElementById('ncPhotoInput');
+  fileInput.addEventListener('change', async ()=>{
+    const files = Array.from(fileInput.files||[]);
+    if(!files.length) return;
+    const results = await Promise.all(files.map(compressImageFileNC));
+    ncDraft.fotos = (ncDraft.fotos||[]).concat(results.filter(Boolean));
+    refreshNCPhotoGrid();
+    fileInput.value = '';
+  });
+  document.getElementById('ncBtnSalvar').addEventListener('click', salvarNC);
+}
+
+async function salvarNC(){
+  if(!ncDraft.num_inspecao){
+    alert('Informe o número da inspeção.');
+    return;
+  }
+  ncDraft.__ts = Date.now();
+  const isNew = ncDraft.__isNew;
+  delete ncDraft.__isNew;
+  if(isNew){
+    STATE.naoconformidades.entries.unshift(ncDraft);
+  }else{
+    const idx = STATE.naoconformidades.entries.findIndex(x=>x.id===ncDraft.id);
+    if(idx!==-1) STATE.naoconformidades.entries[idx] = ncDraft;
+  }
+  await saveState();
+  fecharDrawerNC();
+  renderNaoConf();
+}
+
+document.getElementById('btnNovaNC').addEventListener('click', ()=>abrirDrawerNC(ncBlank(), true));
+document.getElementById('ncBusca').addEventListener('input', renderListaNC);
+document.getElementById('ncFiltroSetor').addEventListener('change', renderListaNC);
+document.getElementById('ncFiltroStatus').addEventListener('change', renderListaNC);
+document.getElementById('ncFiltroOrigem').addEventListener('change', renderListaNC);
+document.getElementById('ncFiltroTipo').addEventListener('change', renderListaNC);
+document.getElementById('ncFiltroEficaz').addEventListener('change', renderListaNC);
+document.getElementById('ncLista').addEventListener('click', e=>{
+  const img = e.target.closest('[data-nc-lightbox]');
+  if(img) abrirLightboxNC(img.getAttribute('src'));
+});
+
+/* ===================== FIM NÃO CONFORMIDADES ===================== */
+
 document.addEventListener('click', async (e)=>{
   const acaoBtn = e.target.closest('[data-acao]');
   if(!acaoBtn) return;
@@ -1938,6 +2496,23 @@ document.addEventListener('click', async (e)=>{
     STATE.tratativas.entries = STATE.tratativas.entries.filter(x=>x.id!==acaoBtn.dataset.id);
     await saveState();
     renderTratativas();
+    return;
+  }
+
+  if(acao==='nc-editar'){
+    e.stopPropagation();
+    const entry = STATE.naoconformidades.entries.find(x=>x.id===acaoBtn.dataset.id);
+    if(entry) abrirDrawerNC(entry, false);
+    return;
+  }
+
+  if(acao==='nc-excluir'){
+    e.stopPropagation();
+    if(confirm('Excluir esta não conformidade? Essa ação não pode ser desfeita.')){
+      STATE.naoconformidades.entries = STATE.naoconformidades.entries.filter(x=>x.id!==acaoBtn.dataset.id);
+      await saveState();
+      renderNaoConf();
+    }
     return;
   }
 });
