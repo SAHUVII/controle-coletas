@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --bg:#10131a;
@@ -2073,7 +2074,8 @@ const NC_FIELD_LABELS = {
   foto_evidencia: "Foto Evidência (Cód.)",
   status_nc: "Status NC",
   eficaz: "Eficaz",
-  penalidade: "Penalidade"
+  penalidade: "Penalidade",
+  observacao: "Observação"
 };
 const NC_OPTIONS = {
   tipo_inspecao: ["ISP","ISVF","ISVV","ISVCA","ISVACE","ISVMA"],
@@ -2111,7 +2113,7 @@ function ncBlank(){
     gravidade:'GRAVISSIMA', origem_nc:'', setor:'', supervisor:'', encarregado:'', motorista:'', dt_cadastro_nc:'',
     equipe:'', gravissima_para:'', descricao_previa_nc:'', reincidencia:'', num_rnc_vinculada:'',
     acao_imediata_prazo:'', acao_imediata_responsavel:'', acao_corretiva_prazo:'', acao_corretiva_responsavel:'',
-    foto_evidencia:'', status_nc:'', eficaz:'', penalidade:'', fotos:[], __ts: Date.now()
+    foto_evidencia:'', status_nc:'', eficaz:'', penalidade:'', observacao:'', fotos:[], __ts: Date.now()
   };
 }
 
@@ -2269,10 +2271,12 @@ function ncCardHtml(r){
       </div>
       <div class="nc-actions">
         <button class="btn btn-sm" data-acao="nc-editar" data-id="${r.id}">Editar</button>
+        <button class="btn btn-sm" data-acao="nc-pdf" data-id="${r.id}">PDF</button>
         <button class="btn btn-sm btn-danger" data-acao="nc-excluir" data-id="${r.id}">Excluir</button>
       </div>
     </div>
     <div class="nc-desc">${escapeHtml(desc.slice(0,180))}${desc.length>180?'…':''}</div>
+    ${r.observacao ? `<div class="nc-desc" style="color:var(--text-muted);margin-top:4px;"><b style="color:var(--text);">Observação:</b> ${escapeHtml(String(r.observacao).slice(0,160))}${String(r.observacao).length>160?'…':''}</div>` : ''}
     <div class="nc-meta">
       <span><b>${escapeHtml(r.setor||'—')}</b></span>
       <span>Origem: <b>${escapeHtml(r.origem_nc||'—')}</b></span>
@@ -2309,9 +2313,17 @@ function ncPhotoAddTileHtml(){
 }
 function ncPhotoSectionHtml(){
   return `
-  <div class="nc-photo-grid" id="ncPhotoGrid">${ncPhotoThumbsHtml()}${ncPhotoAddTileHtml()}</div>
-  <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Anexe fotos da evidência de campo. As imagens ficam salvas junto com este registro.</div>
-  <input type="file" id="ncPhotoInput" accept="image/*" multiple style="display:none">`;
+  <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="flex:1 1 260px;">
+      <div class="nc-photo-grid" id="ncPhotoGrid">${ncPhotoThumbsHtml()}${ncPhotoAddTileHtml()}</div>
+      <input type="file" id="ncPhotoInput" accept="image/*" multiple style="display:none">
+    </div>
+    <div class="nc-field" style="flex:1 1 260px;">
+      <label>Observação</label>
+      <textarea class="tall" data-nc-field="observacao">${escapeHtml(ncDraft.observacao||'')}</textarea>
+    </div>
+  </div>
+  <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Anexe fotos da evidência de campo e registre observações adicionais sobre esta não conformidade.</div>`;
 }
 
 function drawerNCHtml(){
@@ -2336,7 +2348,10 @@ function drawerNCHtml(){
       <div class="nc-drawer-body">${body}</div>
       <div class="nc-drawer-footer">
         <button class="btn" id="ncBtnCancelar">Cancelar</button>
-        <button class="btn btn-accent" id="ncBtnSalvar">Salvar</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" id="ncBtnPdf">Baixar PDF</button>
+          <button class="btn btn-accent" id="ncBtnSalvar">Salvar</button>
+        </div>
       </div>
     </div>
   </div>`;
@@ -2433,6 +2448,91 @@ function bindDrawerNCEvents(){
     fileInput.value = '';
   });
   document.getElementById('ncBtnSalvar').addEventListener('click', salvarNC);
+  document.getElementById('ncBtnPdf').addEventListener('click', ()=>gerarPdfNC(ncDraft));
+}
+
+function gerarPdfNC(entry){
+  if(typeof window.jspdf === 'undefined'){
+    alert('Não foi possível carregar o gerador de PDF. Verifique sua conexão e tente novamente.');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const marginX = 40;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const maxWidth = pageWidth - marginX*2;
+  let y = 50;
+
+  function quebraPagina(extra){
+    if(y + extra > pageHeight - 40){
+      doc.addPage();
+      y = 50;
+    }
+  }
+  function tituloSecao(texto){
+    quebraPagina(24);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
+    doc.setTextColor(196,140,40);
+    doc.text(String(texto).toUpperCase(), marginX, y);
+    doc.setTextColor(20,20,20);
+    y += 16;
+  }
+  function campo(rotulo, valor){
+    if(valor===null || valor===undefined || valor==='') valor='—';
+    quebraPagina(24);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
+    doc.text(String(rotulo)+':', marginX, y);
+    y += 12;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+    const linhas = doc.splitTextToSize(String(valor), maxWidth - 10);
+    linhas.forEach(linha=>{
+      quebraPagina(13);
+      doc.text(linha, marginX+10, y);
+      y += 12;
+    });
+    y += 6;
+  }
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(14);
+  doc.setTextColor(20,20,20);
+  doc.text('Não Conformidade Gravíssima — CSRT', marginX, y);
+  y += 18;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.setTextColor(120,120,120);
+  doc.text('Nº ' + (entry.num_inspecao||'—') + '   ·   Código ' + (entry.cod_nc||'—') + '   ·   Gerado em ' + new Date().toLocaleDateString('pt-BR'), marginX, y);
+  doc.setTextColor(20,20,20);
+  y += 22;
+
+  NC_SECTIONS.forEach(sec=>{
+    if(sec.type==='photos') return;
+    tituloSecao(sec.title);
+    sec.fields.forEach(f=>campo(NC_FIELD_LABELS[f]||f, entry[f]));
+  });
+
+  tituloSecao('Observação');
+  campo('Observação', entry.observacao);
+
+  const fotos = entry.fotos||[];
+  if(fotos.length){
+    tituloSecao('Fotos e Evidências');
+    const imgW = 120, imgH = 90, gap = 12;
+    let x = marginX;
+    quebraPagina(imgH+10);
+    fotos.forEach(f=>{
+      if(x + imgW > pageWidth - marginX){
+        x = marginX;
+        y += imgH + gap;
+        quebraPagina(imgH+10);
+      }
+      try{ doc.addImage(f.dataUrl, 'JPEG', x, y, imgW, imgH); }catch(err){ /* ignora imagem que falhar */ }
+      x += imgW + gap;
+    });
+    y += imgH + 20;
+  }
+
+  const nomeArquivo = 'NC_' + (entry.num_inspecao||'sem-numero') + '_' + (entry.cod_nc||'').replace(/[^a-zA-Z0-9]/g,'') + '.pdf';
+  doc.save(nomeArquivo);
 }
 
 async function salvarNC(){
@@ -2503,6 +2603,13 @@ document.addEventListener('click', async (e)=>{
     e.stopPropagation();
     const entry = STATE.naoconformidades.entries.find(x=>x.id===acaoBtn.dataset.id);
     if(entry) abrirDrawerNC(entry, false);
+    return;
+  }
+
+  if(acao==='nc-pdf'){
+    e.stopPropagation();
+    const entry = STATE.naoconformidades.entries.find(x=>x.id===acaoBtn.dataset.id);
+    if(entry) gerarPdfNC(entry);
     return;
   }
 
