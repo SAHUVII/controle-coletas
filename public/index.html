@@ -381,6 +381,15 @@
   .nc-video-add{width:160px;height:100px;border-radius:8px;border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);font-size:11px;background:transparent;cursor:pointer;flex-shrink:0;}
   .nc-video-add:hover{border-color:var(--accent);color:var(--accent);}
 
+  .nc-doc-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+  .nc-doc-thumb{position:relative;width:96px;height:84px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+  .nc-doc-thumb a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;color:var(--text-muted);text-decoration:none;font-size:10px;text-align:center;padding:4px;box-sizing:border-box;}
+  .nc-doc-thumb a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:88px;}
+  .nc-doc-thumb a:hover{color:var(--accent);}
+  .nc-doc-thumb button{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(10,14,17,.75);border:none;color:#fff;font-size:13px;cursor:pointer;}
+  .nc-doc-add{width:96px;height:84px;border-radius:8px;border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);font-size:11px;background:transparent;cursor:pointer;flex-shrink:0;}
+  .nc-doc-add:hover{border-color:var(--accent);color:var(--accent);}
+
 </style>
 </head>
 <body>
@@ -574,6 +583,8 @@
     <p class="panel-sub">Com base na data de cadastro de cada NC — já lançadas (até hoje), previstas (datas futuras) e reincidências.</p>
     <div class="chart-box"><canvas id="chartNaoConf"></canvas></div>
   </div>
+
+  <div class="panel" id="panelBradley"></div>
 
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
@@ -1123,7 +1134,7 @@ function newId(){
   return 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 }
 
-let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 }, isp:{entries:[]}, inspecao:null, tratativas:{entries:[]}, naoconformidades:{entries:[]} };
+let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 }, isp:{entries:[]}, inspecao:null, tratativas:{entries:[]}, naoconformidades:{entries:[], faseBradleyManual:null} };
 let expandedId = null;
 let openPopoverId = null;
 let editingId = null;
@@ -1173,8 +1184,9 @@ async function loadState(){
   STATE.tratativas = (loaded && loaded.tratativas) ? loaded.tratativas : {entries:[]};
   if(loaded && loaded.naoconformidades && Array.isArray(loaded.naoconformidades.entries)){
     STATE.naoconformidades = loaded.naoconformidades;
+    if(STATE.naoconformidades.faseBradleyManual===undefined) STATE.naoconformidades.faseBradleyManual = null;
   }else{
-    STATE.naoconformidades = { entries: DEFAULT_NAOCONF.map(e=>Object.assign({}, e, {id:newId(), fotos:[]})) };
+    STATE.naoconformidades = { entries: DEFAULT_NAOCONF.map(e=>Object.assign({}, e, {id:newId(), fotos:[], videos:[], documentos:[]})), faseBradleyManual: null };
     await saveState();
   }
   document.getElementById('fPrazo').value = STATE.config.prazoDias;
@@ -2083,7 +2095,8 @@ const NC_FIELD_LABELS = {
   status_nc: "Status NC",
   eficaz: "Eficaz",
   penalidade: "Penalidade",
-  observacao: "Observação"
+  observacao: "Observação",
+  comportamento_gerenciavel: "Comportamento ou Gerenciável"
 };
 const NC_OPTIONS = {
   tipo_inspecao: ["ISP","ISVF","ISVV","ISVCA","ISVACE","ISVMA"],
@@ -2092,7 +2105,8 @@ const NC_OPTIONS = {
   setor: ["CONTRUÇÃO","MANUTENÇÃO","LINHA VIVA","QUARTETO","TRIO","ALMOXARIFADO","FROTA","SESMT"],
   reincidencia: ["sim","não"],
   status_nc: ["CONCLUIDO","EM ANDAMENTO","PENDENTE"],
-  eficaz: ["SIM","NÃO","PARCIAL"]
+  eficaz: ["SIM","NÃO","PARCIAL"],
+  comportamento_gerenciavel: ["Comportamento","Gerenciável"]
 };
 const NC_TEXTAREA_FIELDS = ["descricao_padrao_nc","equipe","gravissima_para","descricao_previa_nc"];
 const NC_TALL_FIELDS = ["descricao_previa_nc"];
@@ -2101,6 +2115,7 @@ const NC_SECTIONS = [
   { title: "Não Conformidade", fields: ["cod_nc","descricao_padrao_nc","gravidade","origem_nc","setor"] },
   { title: "Envolvidos", fields: ["supervisor","encarregado","motorista","equipe"] },
   { title: "Detalhamento da Ocorrência", fields: ["gravissima_para","descricao_previa_nc"] },
+  { title: "Classificação da Causa", fields: ["comportamento_gerenciavel"] },
   { title: "Reincidência", fields: ["reincidencia","num_rnc_vinculada"] },
   { title: "Ação Imediata", fields: ["acao_imediata_prazo","acao_imediata_responsavel"] },
   { title: "Ação Corretiva", fields: ["acao_corretiva_prazo","acao_corretiva_responsavel"] },
@@ -2119,9 +2134,9 @@ function ncBlank(){
   return {
     id: newId(), num_inspecao:'', responsavel_lancamento:'', tipo_inspecao:'', cod_nc:'', descricao_padrao_nc:'',
     gravidade:'GRAVISSIMA', origem_nc:'', setor:'', supervisor:'', encarregado:'', motorista:'', dt_cadastro_nc:'',
-    equipe:'', gravissima_para:'', descricao_previa_nc:'', reincidencia:'', num_rnc_vinculada:'',
+    equipe:'', gravissima_para:'', descricao_previa_nc:'', comportamento_gerenciavel:'', reincidencia:'', num_rnc_vinculada:'',
     acao_imediata_prazo:'', acao_imediata_responsavel:'', acao_corretiva_prazo:'', acao_corretiva_responsavel:'',
-    foto_evidencia:'', status_nc:'', eficaz:'', penalidade:'', observacao:'', fotos:[], videos:[], __ts: Date.now()
+    foto_evidencia:'', status_nc:'', eficaz:'', penalidade:'', observacao:'', fotos:[], videos:[], documentos:[], __ts: Date.now()
   };
 }
 
@@ -2129,6 +2144,7 @@ function renderNaoConf(){
   popularFiltroSetorNC();
   renderStatsNaoConf();
   renderChartNaoConf();
+  renderBradleyCurve();
   renderListaNC();
 }
 
@@ -2234,6 +2250,101 @@ function renderChartNaoConf(){
   });
 }
 
+const BRADLEY_STAGES = [
+  { nome:'Reativa', desc:'A segurança é vista como algo natural. As pessoas agem por instinto e as ações corretivas só acontecem depois que o acidente já ocorreu.' },
+  { nome:'Dependente', desc:'A segurança depende da supervisão e das regras impostas pela liderança. O foco é o cumprimento de normas.' },
+  { nome:'Independente', desc:'Cada colaborador passa a assumir a própria segurança como responsabilidade pessoal, mesmo sem supervisão direta.' },
+  { nome:'Interdependente', desc:'A equipe cuida uns dos outros. A segurança é parte da cultura do time, não apenas uma regra a seguir.' }
+];
+
+function calcularFaseBradleyAuto(){
+  const recs = STATE.naoconformidades.entries;
+  if(!recs.length) return 0;
+  const base = recs.filter(r=>['SIM','NÃO','PARCIAL'].includes(r.eficaz));
+  const pctEficaz = base.length ? (base.filter(r=>r.eficaz==='SIM').length/base.length*100) : 0;
+  const reincid = recs.filter(r=>ncNormalize(r.reincidencia)==='sim').length;
+  const pctReincid = recs.length ? (reincid/recs.length*100) : 0;
+  const comp = recs.filter(r=>r.comportamento_gerenciavel==='Comportamento').length;
+  const ger = recs.filter(r=>r.comportamento_gerenciavel==='Gerenciável').length;
+  const pctGerenciavel = (comp+ger) ? (ger/(comp+ger)*100) : 50;
+
+  let score = 0;
+  if(pctEficaz>=50) score++;
+  if(pctEficaz>=80) score++;
+  if(pctReincid<=15) score++;
+  if(pctGerenciavel>=50) score++;
+  return Math.min(3, score);
+}
+
+function bradleyPanelHtml(){
+  const manual = STATE.naoconformidades.faseBradleyManual;
+  const faseIdx = (manual===null || manual===undefined) ? calcularFaseBradleyAuto() : manual;
+  const pts = [ {x:70,y:168}, {x:230,y:122}, {x:390,y:76}, {x:556,y:34} ];
+  const path = 'M '+pts[0].x+','+pts[0].y+
+    ' C '+(pts[0].x+55)+','+(pts[0].y-8)+' '+(pts[1].x-55)+','+(pts[1].y+14)+' '+pts[1].x+','+pts[1].y+
+    ' C '+(pts[1].x+55)+','+(pts[1].y-14)+' '+(pts[2].x-55)+','+(pts[2].y+14)+' '+pts[2].x+','+pts[2].y+
+    ' C '+(pts[2].x+55)+','+(pts[2].y-10)+' '+(pts[3].x-55)+','+(pts[3].y+8)+' '+pts[3].x+','+pts[3].y;
+
+  const dots = pts.map((p,i)=>{
+    const ativo = i===faseIdx;
+    const anel = ativo ? `<circle cx="${p.x}" cy="${p.y}" r="15" fill="none" stroke="#e8a33d" stroke-width="1.5" opacity="0.55"><animate attributeName="r" values="9;18;9" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/></circle>` : '';
+    return anel + `<circle cx="${p.x}" cy="${p.y}" r="${ativo?9:5}" fill="${ativo?'#e8a33d':'#4a5462'}" stroke="${ativo?'#fff':'none'}" stroke-width="2"/>`;
+  }).join('');
+
+  const labels = pts.map((p,i)=>{
+    const ativo = i===faseIdx;
+    return `<text x="${p.x}" y="198" text-anchor="middle" font-size="12" font-weight="${ativo?700:500}" fill="${ativo?'#e8a33d':'#8c95a2'}">${escapeHtml(BRADLEY_STAGES[i].nome)}</text>`;
+  }).join('');
+
+  const cards = BRADLEY_STAGES.map((s,i)=>{
+    const ativo = i===faseIdx;
+    return `<div style="flex:1;min-width:150px;padding:12px 14px;border-radius:10px;border:1px solid ${ativo?'#e8a33d':'var(--border)'};background:${ativo?'rgba(232,163,61,.08)':'var(--bg)'};">
+      <div style="font-size:12.5px;font-weight:700;color:${ativo?'#e8a33d':'var(--text)'};margin-bottom:4px;">${ativo?'📍 ':''}${escapeHtml(s.nome)}</div>
+      <div style="font-size:11.5px;color:var(--text-muted);line-height:1.4;">${escapeHtml(s.desc)}</div>
+    </div>`;
+  }).join('');
+
+  const opcoes = BRADLEY_STAGES.map((s,i)=>`<option value="${i}" ${manual===i?'selected':''}>Definir manualmente: ${escapeHtml(s.nome)}</option>`).join('');
+
+  return `
+    <h2>Curva de Bradley — Cultura de Segurança</h2>
+    <p class="panel-sub">Modelo de maturidade em segurança do trabalho. A posição em destaque mostra em qual fase a equipe está, com base na eficácia das ações, reincidências e classificação das não conformidades.</p>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+      <select id="ncFaseBradleySelect" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:12.5px;">
+        <option value="auto" ${manual==null?'selected':''}>Automático (baseado nos dados)</option>
+        ${opcoes}
+      </select>
+    </div>
+    <div style="overflow-x:auto;">
+      <svg viewBox="0 0 640 210" style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto;">
+        <line x1="40" y1="190" x2="620" y2="190" stroke="#2b313a" stroke-width="1"/>
+        <path d="${path}" fill="none" stroke="#e8a33d" stroke-width="2.5" opacity="0.85"/>
+        ${dots}
+        ${labels}
+      </svg>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;">${cards}</div>
+  `;
+}
+
+function bindBradleySelect(){
+  const sel = document.getElementById('ncFaseBradleySelect');
+  if(!sel) return;
+  sel.addEventListener('change', async ()=>{
+    const val = sel.value;
+    STATE.naoconformidades.faseBradleyManual = (val==='auto') ? null : parseInt(val,10);
+    await saveState();
+    renderBradleyCurve();
+  });
+}
+
+function renderBradleyCurve(){
+  const el = document.getElementById('panelBradley');
+  if(!el) return;
+  el.innerHTML = bradleyPanelHtml();
+  bindBradleySelect();
+}
+
 function ncBadgeHtml(text, bg, color){
   return `<span class="mini-badge" style="background:${bg};color:${color}">${escapeHtml(text)}</span>`;
 }
@@ -2266,6 +2377,7 @@ function renderListaNC(){
 function ncCardHtml(r){
   const fotos = r.fotos||[];
   const videos = r.videos||[];
+  const documentos = r.documentos||[];
   const fotosHtml = fotos.length ? `<div class="nc-card-photos">${fotos.slice(0,4).map(f=>`<img src="${f.dataUrl}" data-nc-lightbox="1" alt="foto">`).join('')}${fotos.length>4?`<div class="nc-card-photos-more">+${fotos.length-4}</div>`:''}</div>` : '';
   const desc = r.descricao_padrao_nc||'';
   return `
@@ -2295,6 +2407,7 @@ function ncCardHtml(r){
       <span>Penalidade: <b>${escapeHtml(r.penalidade||'—')}</b></span>
       ${fotos.length ? `<span>📷 ${fotos.length} foto(s)</span>` : ''}
       ${videos.length ? `<span>🎬 ${videos.length} vídeo(s)</span>` : ''}
+      ${documentos.length ? `<span>📄 ${documentos.length} documento(s)</span>` : ''}
     </div>
     ${fotosHtml}
   </div>`;
@@ -2377,25 +2490,75 @@ function processarVideoFile(file){
     videoEl.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('Não foi possível ler o vídeo "'+file.name+'".')); };
     videoEl.src = url;
   });
+}
+
+function ncTruncaNome(str, n){
+  if(!str) return '';
+  return str.length>n ? str.slice(0,n-1)+'…' : str;
+}
+function ncDocThumbsHtml(){
+  return (ncDraft.documentos||[]).map((d,i)=>`<div class="nc-doc-thumb"><a href="${d.dataUrl}" target="_blank" rel="noopener" title="${escapeHtml(d.name||'documento.pdf')}">📄<span>${escapeHtml(ncTruncaNome(d.name||'documento.pdf',16))}</span></a><button type="button" data-nc-remove-doc="${i}">&times;</button></div>`).join('');
+}
+function ncDocAddTileHtml(){
+  return `<button type="button" class="nc-doc-add" id="ncBtnAddDoc">📄<span>Adicionar</span></button>`;
+}
+function refreshNCDocGrid(){
+  const grid = document.getElementById('ncDocGrid');
+  if(!grid) return;
+  grid.innerHTML = ncDocThumbsHtml()+ncDocAddTileHtml();
+  bindNCDocGridButtons();
+}
+function bindNCDocGridButtons(){
+  const addBtn = document.getElementById('ncBtnAddDoc');
+  if(addBtn) addBtn.addEventListener('click', ()=>document.getElementById('ncDocInput').click());
+  document.querySelectorAll('[data-nc-remove-doc]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.dataset.ncRemoveDoc,10);
+      ncDraft.documentos.splice(idx,1);
+      refreshNCDocGrid();
+    });
+  });
+}
+function processarDocumentoFile(file){
+  return new Promise((resolve,reject)=>{
+    if(!file.type || file.type!=='application/pdf'){
+      reject(new Error('"'+file.name+'" não é um arquivo PDF.'));
+      return;
+    }
+    const MAX_SIZE = 15*1024*1024;
+    if(file.size > MAX_SIZE){
+      reject(new Error('O PDF "'+file.name+'" é muito grande (máx. ~15MB).'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ()=> resolve({ name:file.name, dataUrl: reader.result, size:file.size });
+    reader.onerror = ()=> reject(new Error('Não foi possível ler o arquivo "'+file.name+'".'));
+    reader.readAsDataURL(file);
+  });
 }function ncPhotoSectionHtml(){
   return `
   <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
-    <div style="flex:1 1 260px;">
+    <div style="flex:1 1 200px;">
       <label style="font-size:12px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;">Fotos</label>
       <div class="nc-photo-grid" id="ncPhotoGrid">${ncPhotoThumbsHtml()}${ncPhotoAddTileHtml()}</div>
       <input type="file" id="ncPhotoInput" accept="image/*" multiple style="display:none">
     </div>
-    <div style="flex:1 1 260px;">
+    <div style="flex:1 1 200px;">
       <label style="font-size:12px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;">Vídeos (até 5 min cada)</label>
       <div class="nc-video-grid" id="ncVideoGrid">${ncVideoThumbsHtml()}${ncVideoAddTileHtml()}</div>
       <input type="file" id="ncVideoInput" accept="video/*" multiple style="display:none">
+    </div>
+    <div style="flex:1 1 200px;">
+      <label style="font-size:12px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;">Documentos PDF</label>
+      <div class="nc-doc-grid" id="ncDocGrid">${ncDocThumbsHtml()}${ncDocAddTileHtml()}</div>
+      <input type="file" id="ncDocInput" accept="application/pdf" multiple style="display:none">
     </div>
   </div>
   <div class="nc-field" style="margin-top:16px;">
     <label>Observação</label>
     <textarea class="tall" data-nc-field="observacao">${escapeHtml(ncDraft.observacao||'')}</textarea>
   </div>
-  <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Anexe fotos e vídeos curtos (máx. 5 minutos cada) da evidência de campo, e registre observações adicionais.</div>`;
+  <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">Anexe fotos, vídeos curtos (máx. 5 minutos cada) e documentos em PDF da evidência de campo, e registre observações adicionais.</div>`;
 }
 
 function drawerNCHtml(){
@@ -2534,6 +2697,21 @@ function bindDrawerNCEvents(){
     if(erros.length) alert(erros.join('\n'));
     videoInput.value = '';
   });
+  bindNCDocGridButtons();
+  const docInput = document.getElementById('ncDocInput');
+  docInput.addEventListener('change', async ()=>{
+    const files = Array.from(docInput.files||[]);
+    if(!files.length) return;
+    const resultados = await Promise.allSettled(files.map(processarDocumentoFile));
+    const ok = resultados.filter(r=>r.status==='fulfilled' && r.value).map(r=>r.value);
+    const erros = resultados.filter(r=>r.status==='rejected').map(r=>r.reason.message);
+    if(ok.length){
+      ncDraft.documentos = (ncDraft.documentos||[]).concat(ok);
+      refreshNCDocGrid();
+    }
+    if(erros.length) alert(erros.join('\n'));
+    docInput.value = '';
+  });
   document.getElementById('ncBtnSalvar').addEventListener('click', salvarNC);
   document.getElementById('ncBtnPdf').addEventListener('click', ()=>gerarPdfNC(ncDraft));
 }
@@ -2622,6 +2800,12 @@ function gerarPdfNC(entry){
   if(videos.length){
     tituloSecao('Vídeos Anexados (o conteúdo do vídeo não é incluído neste PDF)');
     videos.forEach((v,i)=> campo('Vídeo '+(i+1), (v.name||'vídeo') + ' — duração ' + fmtDuracaoVideo(v.duration)));
+  }
+
+  const documentos = entry.documentos||[];
+  if(documentos.length){
+    tituloSecao('Documentos PDF Anexados (arquivos originais disponíveis ao abrir o registro no sistema)');
+    documentos.forEach((d,i)=> campo('Documento '+(i+1), d.name||'documento.pdf'));
   }
 
   const nomeArquivo = 'NC_' + (entry.num_inspecao||'sem-numero') + '_' + (entry.cod_nc||'').replace(/[^a-zA-Z0-9]/g,'') + '.pdf';
