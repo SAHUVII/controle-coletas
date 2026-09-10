@@ -2521,7 +2521,10 @@ function bindNCDocGridButtons(){
 }
 function processarDocumentoFile(file){
   return new Promise((resolve,reject)=>{
-    if(!file.type || file.type!=='application/pdf'){
+    const nome = (file.name||'').toLowerCase();
+    const tipo = (file.type||'').toLowerCase();
+    const pareceSerPdf = tipo === 'application/pdf' || tipo.indexOf('pdf') !== -1 || nome.endsWith('.pdf');
+    if(!pareceSerPdf){
       reject(new Error('"'+file.name+'" não é um arquivo PDF.'));
       return;
     }
@@ -2551,7 +2554,7 @@ function processarDocumentoFile(file){
     <div style="flex:1 1 200px;">
       <label style="font-size:12px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:5px;">Documentos PDF</label>
       <div class="nc-doc-grid" id="ncDocGrid">${ncDocThumbsHtml()}${ncDocAddTileHtml()}</div>
-      <input type="file" id="ncDocInput" accept="application/pdf" multiple style="display:none">
+      <input type="file" id="ncDocInput" accept="application/pdf,.pdf" multiple style="display:none">
     </div>
   </div>
   <div class="nc-field" style="margin-top:16px;">
