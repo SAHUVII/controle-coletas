@@ -4,7 +4,8 @@
   "description": "Controle de coletas de gravacoes da frota",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "migrar-anexos": "node migrar-anexos.js"
   },
   "engines": {
     "node": ">=18"

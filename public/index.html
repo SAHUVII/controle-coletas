@@ -597,7 +597,10 @@
         <h2 style="margin:0;">Não conformidades gravíssimas</h2>
         <p class="panel-sub" style="margin:2px 0 0;">Inspeções, ações imediatas/corretivas e evidências fotográficas.</p>
       </div>
-      <button class="btn btn-accent" id="btnNovaNC">+ Nova NC</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-sm" id="btnMigrarAnexos" title="Move fotos, vídeos e PDFs antigos para o armazenamento de arquivos, deixando o app mais rápido">Migrar anexos antigos</button>
+        <button class="btn btn-accent" id="btnNovaNC">+ Nova NC</button>
+      </div>
     </div>
     <div class="nc-toolbar">
       <input type="text" id="ncBusca" placeholder="Buscar por nº, código, descrição, responsável...">
@@ -2383,7 +2386,7 @@ function ncCardHtml(r){
   const fotos = r.fotos||[];
   const videos = r.videos||[];
   const documentos = r.documentos||[];
-  const fotosHtml = fotos.length ? `<div class="nc-card-photos">${fotos.slice(0,4).map(f=>`<img src="${f.dataUrl}" data-nc-lightbox="1" alt="foto">`).join('')}${fotos.length>4?`<div class="nc-card-photos-more">+${fotos.length-4}</div>`:''}</div>` : '';
+  const fotosHtml = fotos.length ? `<div class="nc-card-photos">${fotos.slice(0,4).map(f=>`<img src="${f.url||f.dataUrl}" data-nc-lightbox="1" alt="foto">`).join('')}${fotos.length>4?`<div class="nc-card-photos-more">+${fotos.length-4}</div>`:''}</div>` : '';
   const desc = r.descricao_padrao_nc||'';
   return `
   <div class="nc-card" data-nc-id="${r.id}">
@@ -2435,7 +2438,7 @@ function ncFieldHtml(key){
 }
 
 function ncPhotoThumbsHtml(){
-  return (ncDraft.fotos||[]).map((f,i)=>`<div class="nc-photo-thumb"><img src="${f.dataUrl}" data-nc-drawer-lightbox="${i}" alt="foto"><button type="button" data-nc-remove-photo="${i}">&times;</button></div>`).join('');
+  return (ncDraft.fotos||[]).map((f,i)=>`<div class="nc-photo-thumb"><img src="${f.url||f.dataUrl}" data-nc-drawer-lightbox="${i}" alt="foto"><button type="button" data-nc-remove-photo="${i}">&times;</button></div>`).join('');
 }
 function ncPhotoAddTileHtml(){
   return `<button type="button" class="nc-photo-add" id="ncBtnAddPhoto">📷<span>Adicionar</span></button>`;
@@ -2447,7 +2450,7 @@ function fmtDuracaoVideo(seg){
   return m+':'+String(s).padStart(2,'0');
 }
 function ncVideoThumbsHtml(){
-  return (ncDraft.videos||[]).map((v,i)=>`<div class="nc-video-thumb"><video src="${v.dataUrl}" controls muted preload="metadata"></video><span class="nc-video-dur">${fmtDuracaoVideo(v.duration)}</span><button type="button" data-nc-remove-video="${i}">&times;</button></div>`).join('');
+  return (ncDraft.videos||[]).map((v,i)=>`<div class="nc-video-thumb"><video src="${v.url||v.dataUrl}" controls muted preload="metadata"></video><span class="nc-video-dur">${fmtDuracaoVideo(v.duration)}</span><button type="button" data-nc-remove-video="${i}">&times;</button></div>`).join('');
 }
 function ncVideoAddTileHtml(){
   return `<button type="button" class="nc-video-add" id="ncBtnAddVideo">🎬<span>Adicionar</span></button>`;
@@ -2464,8 +2467,10 @@ function bindNCVideoGridButtons(){
   document.querySelectorAll('[data-nc-remove-video]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const idx = parseInt(btn.dataset.ncRemoveVideo,10);
+      const item = (ncDraft.videos||[])[idx];
       ncDraft.videos.splice(idx,1);
       refreshNCVideoGrid();
+      if(item && item.path) removerArquivoServidor(item.path);
     });
   });
 }
@@ -2477,23 +2482,28 @@ function processarVideoFile(file){
       reject(new Error('O vídeo "'+file.name+'" é muito grande (máx. ~40MB). Comprima o vídeo antes de anexar.'));
       return;
     }
-    const url = URL.createObjectURL(file);
+    const previewUrl = URL.createObjectURL(file);
     const videoEl = document.createElement('video');
     videoEl.preload = 'metadata';
     videoEl.onloadedmetadata = ()=>{
       const duracao = videoEl.duration;
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(previewUrl);
       if(duracao > 300){
         reject(new Error('O vídeo "'+file.name+'" tem '+fmtDuracaoVideo(duracao)+' — o limite é 5 minutos.'));
         return;
       }
       const reader = new FileReader();
-      reader.onload = ()=> resolve({ name:file.name, dataUrl: reader.result, duration: Math.round(duracao), type:file.type||'video/mp4' });
+      reader.onload = async ()=>{
+        try{
+          const up = await uploadArquivoServidor(file.name, file.type||'video/mp4', reader.result);
+          resolve({ name:file.name, url:up.url, path:up.path, duration: Math.round(duracao), type:file.type||'video/mp4' });
+        }catch(err){ reject(err); }
+      };
       reader.onerror = ()=> reject(new Error('Não foi possível ler o vídeo "'+file.name+'".'));
       reader.readAsDataURL(file);
     };
-    videoEl.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('Não foi possível ler o vídeo "'+file.name+'".')); };
-    videoEl.src = url;
+    videoEl.onerror = ()=>{ URL.revokeObjectURL(previewUrl); reject(new Error('Não foi possível ler o vídeo "'+file.name+'".')); };
+    videoEl.src = previewUrl;
   });
 }
 
@@ -2523,8 +2533,10 @@ function bindNCDocGridButtons(){
   document.querySelectorAll('[data-nc-remove-doc]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const idx = parseInt(btn.dataset.ncRemoveDoc,10);
+      const item = (ncDraft.documentos||[])[idx];
       ncDraft.documentos.splice(idx,1);
       refreshNCDocGrid();
+      if(item && item.path) removerArquivoServidor(item.path);
     });
   });
   document.querySelectorAll('[data-nc-view-doc]').forEach(btn=>{
@@ -2550,10 +2562,17 @@ function base64ParaBlob(dataUrl, mimePadrao){
 }
 
 function abrirVisualizadorPdfNC(doc){
-  let url;
+  let url, precisaRevogar = false;
   try{
-    const blob = base64ParaBlob(doc.dataUrl, 'application/pdf');
-    url = URL.createObjectURL(blob);
+    if(doc.url){
+      url = doc.url;
+    }else if(doc.dataUrl){
+      const blob = base64ParaBlob(doc.dataUrl, 'application/pdf');
+      url = URL.createObjectURL(blob);
+      precisaRevogar = true;
+    }else{
+      throw new Error('sem conteúdo');
+    }
   }catch(e){
     alert('Não foi possível abrir este PDF.');
     return;
@@ -2572,7 +2591,7 @@ function abrirVisualizadorPdfNC(doc){
       <iframe src="${url}" class="nc-pdf-viewer-frame"></iframe>
     </div>`;
   function fechar(){
-    URL.revokeObjectURL(url);
+    if(precisaRevogar) URL.revokeObjectURL(url);
     layer.innerHTML = '';
   }
   document.getElementById('ncPdfViewerClose').addEventListener('click', fechar);
@@ -2592,11 +2611,18 @@ function processarDocumentoFile(file){
       return;
     }
     const reader = new FileReader();
-    reader.onload = ()=> resolve({ name:file.name, dataUrl: reader.result, size:file.size });
+    reader.onload = async ()=>{
+      try{
+        const up = await uploadArquivoServidor(file.name, file.type||'application/pdf', reader.result);
+        resolve({ name:file.name, url:up.url, path:up.path, size:file.size });
+      }catch(err){ reject(err); }
+    };
     reader.onerror = ()=> reject(new Error('Não foi possível ler o arquivo "'+file.name+'".'));
     reader.readAsDataURL(file);
   });
-}function ncPhotoSectionHtml(){
+}
+
+function ncPhotoSectionHtml(){
   return `
   <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
     <div style="flex:1 1 200px;">
@@ -2686,13 +2712,40 @@ function bindNCPhotoGridButtons(){
   document.querySelectorAll('[data-nc-remove-photo]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const idx = parseInt(btn.dataset.ncRemovePhoto,10);
+      const item = (ncDraft.fotos||[])[idx];
       ncDraft.fotos.splice(idx,1);
       refreshNCPhotoGrid();
+      if(item && item.path) removerArquivoServidor(item.path);
     });
   });
   document.querySelectorAll('[data-nc-drawer-lightbox]').forEach(img=>{
     img.addEventListener('click', ()=>abrirLightboxNC(img.getAttribute('src')));
   });
+}
+
+function uploadArquivoServidor(nome, tipo, dataUrl){
+  const base64 = String(dataUrl).split(',')[1] || '';
+  return fetch('/api/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome, tipo, dataBase64: base64 })
+  }).then(async resp=>{
+    if(!resp.ok){
+      let msg = 'Falha ao enviar "'+nome+'" para o servidor.';
+      try{ const j = await resp.json(); if(j && j.error) msg += ' ('+j.error+')'; }catch(e){}
+      throw new Error(msg);
+    }
+    return resp.json();
+  });
+}
+
+function removerArquivoServidor(caminho){
+  if(!caminho) return;
+  fetch('/api/upload', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: caminho })
+  }).catch(()=>{ /* melhor esforco: nao trava a interface se a limpeza falhar */ });
 }
 
 function compressImageFileNC(file){
@@ -2703,13 +2756,17 @@ function compressImageFileNC(file){
     reader.onload = ()=>{
       const img = new Image();
       img.onerror = reject;
-      img.onload = ()=>{
-        const scale = Math.min(1, NC_MAX_PHOTO_DIM/Math.max(img.width,img.height));
-        const cw = Math.round(img.width*scale), ch = Math.round(img.height*scale);
-        const canvas = document.createElement('canvas');
-        canvas.width=cw; canvas.height=ch;
-        canvas.getContext('2d').drawImage(img,0,0,cw,ch);
-        resolve({ name:file.name, dataUrl: canvas.toDataURL('image/jpeg',NC_PHOTO_QUALITY) });
+      img.onload = async ()=>{
+        try{
+          const scale = Math.min(1, NC_MAX_PHOTO_DIM/Math.max(img.width,img.height));
+          const cw = Math.round(img.width*scale), ch = Math.round(img.height*scale);
+          const canvas = document.createElement('canvas');
+          canvas.width=cw; canvas.height=ch;
+          canvas.getContext('2d').drawImage(img,0,0,cw,ch);
+          const dataUrl = canvas.toDataURL('image/jpeg',NC_PHOTO_QUALITY);
+          const up = await uploadArquivoServidor(file.name, 'image/jpeg', dataUrl);
+          resolve({ name:file.name, url:up.url, path:up.path });
+        }catch(err){ reject(err); }
       };
       img.src = reader.result;
     };
@@ -2738,9 +2795,14 @@ function bindDrawerNCEvents(){
   fileInput.addEventListener('change', async ()=>{
     const files = Array.from(fileInput.files||[]);
     if(!files.length) return;
-    const results = await Promise.all(files.map(compressImageFileNC));
-    ncDraft.fotos = (ncDraft.fotos||[]).concat(results.filter(Boolean));
-    refreshNCPhotoGrid();
+    const resultados = await Promise.allSettled(files.map(compressImageFileNC));
+    const ok = resultados.filter(r=>r.status==='fulfilled' && r.value).map(r=>r.value);
+    const erros = resultados.filter(r=>r.status==='rejected').map(r=>r.reason.message||'Falha ao enviar imagem.');
+    if(ok.length){
+      ncDraft.fotos = (ncDraft.fotos||[]).concat(ok);
+      refreshNCPhotoGrid();
+    }
+    if(erros.length) alert(erros.join('\n'));
     fileInput.value = '';
   });
   bindNCVideoGridButtons();
@@ -2777,11 +2839,30 @@ function bindDrawerNCEvents(){
   document.getElementById('ncBtnPdf').addEventListener('click', ()=>gerarPdfNC(ncDraft));
 }
 
-function gerarPdfNC(entry){
+function urlParaDataUrl(url){
+  return fetch(url)
+    .then(r=>{ if(!r.ok) throw new Error('falha ao buscar imagem'); return r.blob(); })
+    .then(blob=> new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }));
+}
+
+async function gerarPdfNC(entry){
   if(typeof window.jspdf === 'undefined'){
     alert('Não foi possível carregar o gerador de PDF. Verifique sua conexão e tente novamente.');
     return;
   }
+  const fotosComDados = await Promise.all((entry.fotos||[]).map(async f=>{
+    if(f.dataUrl) return f;
+    if(f.url){
+      try{ return Object.assign({}, f, { dataUrl: await urlParaDataUrl(f.url) }); }
+      catch(e){ return f; }
+    }
+    return f;
+  }));
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'pt', format:'a4' });
   const marginX = 40;
@@ -2839,7 +2920,7 @@ function gerarPdfNC(entry){
   tituloSecao('Observação');
   campo('Observação', entry.observacao);
 
-  const fotos = entry.fotos||[];
+  const fotos = fotosComDados;
   if(fotos.length){
     tituloSecao('Fotos e Evidências');
     const imgW = 120, imgH = 90, gap = 12;
@@ -2851,7 +2932,7 @@ function gerarPdfNC(entry){
         y += imgH + gap;
         quebraPagina(imgH+10);
       }
-      try{ doc.addImage(f.dataUrl, 'JPEG', x, y, imgW, imgH); }catch(err){ /* ignora imagem que falhar */ }
+      try{ if(f.dataUrl) doc.addImage(f.dataUrl, 'JPEG', x, y, imgW, imgH); }catch(err){ /* ignora imagem que falhar */ }
       x += imgW + gap;
     });
     y += imgH + 20;
@@ -2893,6 +2974,36 @@ async function salvarNC(){
 }
 
 document.getElementById('btnNovaNC').addEventListener('click', ()=>abrirDrawerNC(ncBlank(), true));
+document.getElementById('btnMigrarAnexos').addEventListener('click', async ()=>{
+  if(!confirm('Isso vai mover as fotos, vídeos e PDFs já salvos para o armazenamento de arquivos, deixando o app mais rápido. Pode levar alguns minutos se houver muitos anexos. Continuar?')) return;
+  const btn = document.getElementById('btnMigrarAnexos');
+  const textoOriginal = btn.textContent;
+  btn.disabled = true;
+  let totalMigrados = 0, totalFalhas = 0;
+  try{
+    while(true){
+      btn.textContent = totalMigrados>0 ? ('Migrando... ('+totalMigrados+' feitos)') : 'Migrando...';
+      const resp = await fetch('/api/migrar-anexos', { method:'POST' });
+      if(!resp.ok) throw new Error('HTTP '+resp.status);
+      const j = await resp.json();
+      totalMigrados += j.migrados||0;
+      totalFalhas += j.falhas||0;
+      if(!j.restantes || (j.migrados===0 && j.falhas===0)) break;
+    }
+    if(totalMigrados===0 && totalFalhas===0){
+      alert('Nenhum anexo antigo para migrar — o app já está leve.');
+      btn.disabled = false;
+      btn.textContent = textoOriginal;
+    }else{
+      alert('Migração concluída! '+totalMigrados+' arquivo(s) migrado(s)'+(totalFalhas?', '+totalFalhas+' falha(s) (tente rodar de novo para essas)':'')+'. A página vai recarregar.');
+      location.reload();
+    }
+  }catch(e){
+    alert('Erro durante a migração: '+e.message+'. Você pode tentar de novo — nada se perde.');
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }
+});
 document.getElementById('ncBusca').addEventListener('input', renderListaNC);
 document.getElementById('ncFiltroSetor').addEventListener('change', renderListaNC);
 document.getElementById('ncFiltroStatus').addEventListener('change', renderListaNC);
