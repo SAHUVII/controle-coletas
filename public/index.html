@@ -3871,9 +3871,9 @@ function encRenderLista(){
     <div class="enc-evid-panel" id="encEvidPanel-${t.id}" style="display:${encEvidenciaAberta[t.id] ? 'block' : 'none'};">
       ${temEvidencia ? `
         <div class="enc-evid-slim">
-          <span>Tratativa postada em ${fmtData((ev.criadoEm||'').slice(0,10))}${ev.emailFalhou ? ' <span class="enc-evid-slim-warn">· ⚠ notificação não enviada</span>' : ''}</span>
+          <span>Tratativa postada em ${fmtData((ev.criadoEm||'').slice(0,10))}</span>
           <div class="enc-row">
-            ${ev.emailFalhou ? `<button type="button" class="enc-btn enc-btn-sm" data-enc-evid-reenviar="${t.id}">Reenviar notificação</button>` : ''}
+            ${ev.fotos && ev.fotos.length ? `<button type="button" class="enc-btn enc-btn-sm" data-enc-evid-ver-foto="${t.id}">👁 Ver foto</button>` : ''}
             <button type="button" class="enc-btn enc-btn-sm" data-enc-evid-ver="${t.id}">👁 Ver tratativa</button>
           </div>
         </div>
@@ -4011,33 +4011,19 @@ function encRenderLista(){
         alert('Adicione uma observação, foto ou PDF antes de postar.');
         return;
       }
-      btn.disabled = true; btn.textContent = 'Enviando...';
+      btn.disabled = true; btn.textContent = 'Postando...';
       const evidencia = {
         id: newId(),
         criadoEm: new Date().toISOString(),
         observacao,
         fotos: pendente.fotos,
-        documento: pendente.documento,
-        emailFalhou: false,
-        emailErro: null
+        documento: pendente.documento
       };
       if(!t.tratativasEvidencias) t.tratativasEvidencias = [];
       t.tratativasEvidencias.push(evidencia);
       await saveState();
       delete encEvidenciaPendente[id];
       encEvidenciaAberta[id] = true;
-      try{
-        await encEnviarEmailEvidencia(t, evidencia);
-        evidencia.emailFalhou = false;
-        evidencia.emailErro = null;
-      }catch(err){
-        evidencia.emailFalhou = true;
-        evidencia.emailErro = err.message;
-      }
-      await saveState();
-      if(evidencia.emailFalhou){
-        alert('Tratativa postada, mas o e-mail de notificação não pôde ser enviado: ' + evidencia.emailErro);
-      }
       btn.disabled = false; btn.textContent = 'Postar tratativa';
       renderEmailNc();
     });
@@ -4051,24 +4037,29 @@ function encRenderLista(){
     });
   });
 
-  cont.querySelectorAll('[data-enc-evid-reenviar]').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const t = STATE.emailnc.entries.find(x=>x.id===btn.dataset.encEvidReenviar);
+  cont.querySelectorAll('[data-enc-evid-ver-foto]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = STATE.emailnc.entries.find(x=>x.id===btn.dataset.encEvidVerFoto);
       const ev = t && t.tratativasEvidencias && t.tratativasEvidencias[0];
-      if(!t || !ev) return;
-      btn.disabled = true; btn.textContent = 'Enviando...';
-      try{
-        await encEnviarEmailEvidencia(t, ev);
-        ev.emailFalhou = false;
-        ev.emailErro = null;
-      }catch(err){
-        ev.emailFalhou = true;
-        ev.emailErro = err.message;
-        alert('Não foi possível enviar a notificação: ' + err.message);
-      }
-      await saveState();
-      renderEmailNc();
+      if(ev && ev.fotos && ev.fotos.length) encAbrirFotosEvidencia(ev.fotos);
     });
+  });
+}
+
+function encAbrirFotosEvidencia(fotos){
+  const modal = document.getElementById('encModalContent');
+  modal.innerHTML = `
+    <h3>Foto da tratativa</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+      ${fotos.map(f=>`<img src="${f.url}" alt="" style="width:100%;max-width:420px;height:auto;border-radius:8px;border:1px solid var(--enc-border);">`).join('')}
+    </div>
+    <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+      <button type="button" class="enc-btn enc-btn-primary enc-btn-sm" id="encModalFechar">Fechar</button>
+    </div>
+  `;
+  document.getElementById('encModalBg').classList.add('show');
+  document.getElementById('encModalFechar').addEventListener('click', ()=>{
+    document.getElementById('encModalBg').classList.remove('show');
   });
 }
 
@@ -4080,7 +4071,6 @@ function encAbrirModalEvidencia(t, ev){
     <div class="enc-evid-obs">${escapeHtml(ev.observacao||'—')}</div>
     ${ev.fotos && ev.fotos.length ? `<div class="enc-evid-fotos">${ev.fotos.map(f=>`<img src="${f.url}" alt="">`).join('')}</div>` : ''}
     ${ev.documento ? `<a class="enc-evid-doc" href="${ev.documento.url}" target="_blank" rel="noopener">${ENC_SVG_PDF} ${escapeHtml(ev.documento.name||'documento.pdf')}</a>` : ''}
-    ${ev.emailFalhou ? `<p style="color:var(--enc-danger);font-size:0.8rem;margin-top:14px;">⚠ A notificação por e-mail não pôde ser enviada: ${escapeHtml(ev.emailErro||'motivo desconhecido')}</p>` : ''}
     <div style="margin-top:18px;display:flex;justify-content:flex-end;">
       <button type="button" class="enc-btn enc-btn-primary enc-btn-sm" id="encModalFechar">Fechar</button>
     </div>
@@ -4113,96 +4103,6 @@ function encLerArquivoComoDataUrl(file){
   });
 }
 
-async function encGerarPdfEvidencia(entryPai, evidencia){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:'pt', format:'a4' });
-  const marginX = 40;
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const maxWidth = pageWidth - marginX*2;
-  let y = 50;
-  function quebraPagina(extra){ if(y+extra > pageHeight-40){ doc.addPage(); y=50; } }
-  function campo(rotulo, valor){
-    if(valor===null||valor===undefined||valor==='') valor='—';
-    quebraPagina(24);
-    doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
-    doc.text(String(rotulo)+':', marginX, y); y+=12;
-    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
-    const linhas = doc.splitTextToSize(String(valor), maxWidth-10);
-    linhas.forEach(l=>{ quebraPagina(13); doc.text(l, marginX+10, y); y+=12; });
-    y+=6;
-  }
-  doc.setFont('helvetica','bold'); doc.setFontSize(14);
-  doc.text('Evidência de tratativa', marginX, y); y+=18;
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,120,120);
-  doc.text('Gerado em ' + new Date().toLocaleString('pt-BR'), marginX, y);
-  doc.setTextColor(20,20,20); y+=22;
-
-  campo('Não conformidade original', entryPai.descricao);
-  campo('Gravidade', entryPai.gravidade + (entryPai.codigo ? ' (' + entryPai.codigo + ')' : ''));
-  campo('Frota / Placa', (entryPai.frota || '—') + ' / ' + (entryPai.placa || '—'));
-  campo('Observação da tratativa', evidencia.observacao);
-  if(evidencia.documento) campo('Documento anexado', evidencia.documento.name || 'documento.pdf');
-
-  for(const foto of (evidencia.fotos || [])){
-    try{
-      const dataUrl = await urlParaDataUrl(foto.url);
-      const props = doc.getImageProperties(dataUrl);
-      const maxImgH = 220;
-      const ratio = Math.min(maxWidth/props.width, maxImgH/props.height, 1);
-      quebraPagina(props.height*ratio + 10);
-      doc.addImage(dataUrl, 'JPEG', marginX, y, props.width*ratio, props.height*ratio);
-      y += props.height*ratio + 12;
-    }catch(err){ /* ignora foto que nao carregou */ }
-  }
-
-  return doc;
-}
-
-const ENC_EMAIL_TRATATIVAS = 'hugo.esmael@csrtenergia.com.br';
-
-async function encEnviarEmailEvidencia(entryPai, evidencia){
-  const doc = await encGerarPdfEvidencia(entryPai, evidencia);
-  const base64Resumo = doc.output('datauristring').split(',')[1];
-  const attachments = [{ content: base64Resumo, name: 'evidencia-' + evidencia.id + '.pdf' }];
-
-  if(evidencia.documento && evidencia.documento.url){
-    try{
-      const dataUrlDoc = await urlParaDataUrl(evidencia.documento.url);
-      attachments.push({ content: dataUrlDoc.split(',')[1], name: evidencia.documento.name || 'documento.pdf' });
-    }catch(err){ /* segue so com o resumo, se o documento original nao puder ser buscado */ }
-  }
-
-  const html = `
-  <div style="font-family:Arial,sans-serif;color:#1a1a1a;max-width:560px;margin:0 auto;">
-    <h2 style="margin-bottom:4px;">Nova tratativa postada</h2>
-    <p style="color:#666;margin-top:0;font-size:13px;">Uma evidência foi registrada para a não conformidade abaixo.</p>
-    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;">
-      <tr><td style="padding:4px 0;color:#666;">Gravidade</td><td style="padding:4px 0;">${escapeHtml(entryPai.gravidade)}${entryPai.codigo ? ' ('+escapeHtml(entryPai.codigo)+')' : ''}</td></tr>
-      <tr><td style="padding:4px 0;color:#666;">Frota / Placa</td><td style="padding:4px 0;">${escapeHtml(entryPai.frota)||'—'} / ${escapeHtml(entryPai.placa)||'—'}</td></tr>
-      <tr><td style="padding:4px 0;color:#666;">Não conformidade</td><td style="padding:4px 0;">${escapeHtml(entryPai.descricao)}</td></tr>
-    </table>
-    <p style="font-size:14px;"><b>Observação da tratativa:</b><br>${escapeHtml(evidencia.observacao||'—').replace(/\n/g,'<br>')}</p>
-    <p style="font-size:13px;color:#666;">O(s) anexo(s) desta tratativa estão junto a este e-mail.</p>
-  </div>`;
-
-  const resp = await fetch('/api/enviar-email-nc', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      to: ENC_EMAIL_TRATATIVAS,
-      subject: `Nova tratativa postada — ${entryPai.gravidade}${entryPai.codigo ? ' ('+entryPai.codigo+')' : ''}`,
-      html,
-      attachments
-    })
-  });
-  if(resp.status === 401){ window.location.href = '/login'; return; }
-  if(!resp.ok){
-    let msg = 'Falha ao enviar e-mail.';
-    try{ const j = await resp.json(); if(j && j.error) msg = j.error; }catch(err){}
-    throw new Error(msg);
-  }
-}
 ['encListaFiltroStatus','encListaFiltroGrav','encListaFiltroDia','encListaFiltroMes','encListaFiltroAno'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener('change', encRenderLista);
