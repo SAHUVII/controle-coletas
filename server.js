@@ -535,6 +535,18 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // fallback: qualquer outro arquivo dentro de public/ (ex.: nc-codes.js) e' servido aqui.
+  // Isso faltava no servidor original, que so conhecia arquivos especificos (icones, manifest, etc.).
+  if (req.method === 'GET') {
+    const safePath = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, '');
+    const publicDir = path.join(__dirname, 'public');
+    const candidato = path.join(publicDir, safePath);
+    if (candidato.startsWith(publicDir) && fs.existsSync(candidato) && fs.statSync(candidato).isFile()) {
+      serveFile(res, candidato);
+      return;
+    }
+  }
+
   res.writeHead(404); res.end('Nao encontrado');
 });
 
