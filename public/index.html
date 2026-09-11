@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/nc-codes.js"></script>
 <style>
   :root{
     --bg:#10131a;
@@ -420,6 +421,7 @@
   <button class="tab-btn" data-tab="inspecao">Inspeção de Câmera</button>
   <button class="tab-btn" data-tab="tratativas">Tratativas</button>
   <button class="tab-btn" data-tab="naoconf">Não Conformidades</button>
+  <button class="tab-btn" data-tab="emailnc">Email NC</button>
 </div>
 
 <div id="view-coletas">
@@ -635,6 +637,119 @@
     <div class="nc-list" id="ncLista"></div>
   </div>
 </div>
+
+<div id="view-emailnc" class="view-wrap" style="display:none">
+  <div class="stats" id="statsEmailNc" style="grid-template-columns:repeat(5,1fr);"></div>
+
+  <div class="panel">
+    <h2>Painel</h2>
+    <p class="panel-sub">Situação geral e frotas com não conformidades recorrentes, por período de lançamento.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <select id="encFiltroDia"></select>
+      <select id="encFiltroMes"></select>
+      <select id="encFiltroAno"></select>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div class="chart-box" style="height:240px;max-width:360px;flex:1;min-width:260px;">
+        <canvas id="chartEmailNcStatus"></canvas>
+      </div>
+      <div class="chart-box" style="height:240px;max-width:360px;flex:1;min-width:260px;">
+        <canvas id="chartEmailNcFrota"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Nova tratativa por e-mail</h2>
+    <p class="panel-sub">Registra a ocorrência, envia por e-mail para o responsável e recebe a confirmação automaticamente quando ele responder.</p>
+    <form id="formEmailNc">
+      <div class="trat-form">
+        <div class="campo">
+          <label>Foto do ocorrido</label>
+          <input type="file" accept="image/*" capture="environment" id="encFotoInput">
+        </div>
+        <div class="campo">
+          <label>Gravidade</label>
+          <div style="display:flex;gap:6px;" id="encGravRow">
+            <button type="button" class="btn btn-sm" data-grav="Gravíssima">Gravíssima</button>
+            <button type="button" class="btn btn-sm" data-grav="Grave">Grave</button>
+            <button type="button" class="btn btn-sm" data-grav="Leve">Leve</button>
+          </div>
+        </div>
+        <div class="campo">
+          <label>Código da NC</label>
+          <select id="encCodigo" disabled><option value="">Selecione a gravidade</option></select>
+        </div>
+        <div class="campo">
+          <label>Prazo para realizar</label>
+          <input type="date" id="encPrazo">
+        </div>
+        <div class="campo campo-larga campo-full">
+          <label>Descrição da ocorrência</label>
+          <textarea id="encDescricao"></textarea>
+        </div>
+        <div class="campo">
+          <label>Supervisor</label>
+          <input type="text" id="encSupervisor">
+        </div>
+        <div class="campo">
+          <label>Encarregado</label>
+          <input type="text" id="encEncarregado">
+        </div>
+        <div class="campo">
+          <label>Lançado por</label>
+          <input type="text" id="encLancadoPor">
+        </div>
+        <div class="campo">
+          <label>Frota</label>
+          <input type="text" id="encFrota">
+        </div>
+        <div class="campo">
+          <label>Placa</label>
+          <input type="text" id="encPlaca">
+        </div>
+        <div class="campo campo-larga campo-full">
+          <label>E-mail do responsável pela aprovação (destinatário principal)</label>
+          <input type="email" id="encEmail">
+        </div>
+        <div class="campo"><label>E-mail em cópia 1</label><input type="email" id="encCc1"></div>
+        <div class="campo"><label>E-mail em cópia 2</label><input type="email" id="encCc2"></div>
+        <div class="campo"><label>E-mail em cópia 3</label><input type="email" id="encCc3"></div>
+        <div class="campo"><label>E-mail em cópia 4</label><input type="email" id="encCc4"></div>
+      </div>
+      <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:10px;">
+        <button type="submit" class="btn btn-accent" id="encBtnSalvar">Salvar tratativa</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <h2 style="margin:0;">Tratativas lançadas</h2>
+      <button class="btn btn-sm" id="btnRelatorioEmailNc">Baixar relatório (PDF)</button>
+    </div>
+    <div class="nc-toolbar">
+      <input type="text" id="encListaFiltroPlaca" placeholder="Buscar por placa ou frota">
+      <select id="encListaFiltroStatus">
+        <option value="">Todas as situações</option>
+        <option>Em andamento</option>
+        <option>Concluído</option>
+        <option>Vencido</option>
+      </select>
+      <select id="encListaFiltroGrav">
+        <option value="">Todas as gravidades</option>
+        <option>Gravíssima</option>
+        <option>Grave</option>
+        <option>Leve</option>
+      </select>
+      <select id="encListaFiltroDia"></select>
+      <select id="encListaFiltroMes"></select>
+      <select id="encListaFiltroAno"></select>
+    </div>
+    <div class="nc-list" id="encLista"></div>
+  </div>
+</div>
+
 
 <div id="ncDrawerLayer"></div>
 <div id="ncLightboxLayer"></div>
@@ -1142,7 +1257,7 @@ function newId(){
   return 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 }
 
-let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 }, isp:{entries:[]}, inspecao:null, tratativas:{entries:[]}, naoconformidades:{entries:[], faseBradleyManual:null} };
+let STATE = { vehicles: [], records:{}, config:{ prazoDias:15 }, isp:{entries:[]}, inspecao:null, tratativas:{entries:[]}, naoconformidades:{entries:[], faseBradleyManual:null}, emailnc:{entries:[]} };
 let expandedId = null;
 let openPopoverId = null;
 let editingId = null;
@@ -1155,6 +1270,8 @@ let chartTratativasInstance = null;
 let chartGravInstance = null;
 let chartClickInstance = null;
 let chartNaoConfInstance = null;
+let chartEmailNcStatusInstance = null;
+let chartEmailNcFrotaInstance = null;
 
 const MESES_ANO = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
 
@@ -1197,6 +1314,7 @@ async function loadState(){
     STATE.naoconformidades = { entries: DEFAULT_NAOCONF.map(e=>Object.assign({}, e, {id:newId(), fotos:[], videos:[], documentos:[]})), faseBradleyManual: null };
     await saveState();
   }
+  STATE.emailnc = (loaded && loaded.emailnc && Array.isArray(loaded.emailnc.entries)) ? loaded.emailnc : { entries: [] };
   document.getElementById('fPrazo').value = STATE.config.prazoDias;
 }
 
@@ -1649,11 +1767,13 @@ function switchTab(tab){
   document.getElementById('view-inspecao').style.display = tab==='inspecao' ? '' : 'none';
   document.getElementById('view-tratativas').style.display = tab==='tratativas' ? '' : 'none';
   document.getElementById('view-naoconf').style.display = tab==='naoconf' ? '' : 'none';
+  document.getElementById('view-emailnc').style.display = tab==='emailnc' ? '' : 'none';
   if(tab==='coletas') renderChartStatusPizza();
   if(tab==='isp') renderIsp();
   if(tab==='inspecao') renderInspecaoAll();
   if(tab==='tratativas') renderTratativas();
   if(tab==='naoconf') renderNaoConf();
+  if(tab==='emailnc') renderEmailNc();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>{
   b.addEventListener('click', ()=> switchTab(b.dataset.tab));
@@ -3072,6 +3192,504 @@ document.addEventListener('click', async (e)=>{
     return;
   }
 });
+
+/* ===================== EMAIL NC ===================== */
+
+let encFotoAtual = null;
+let encGravAtual = null;
+
+function encPopularCodigos(gravidade){
+  const sel = document.getElementById('encCodigo');
+  const lista = gravidade && window.NC_CODES ? window.NC_CODES[gravidade] : null;
+  if(!lista){
+    sel.innerHTML = '<option value="">Selecione a gravidade</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  sel.innerHTML = '<option value="">Selecione o código da NC</option>' +
+    lista.map(item=>`<option value="${escapeHtml(item.code)}">${escapeHtml(item.code)} — ${escapeHtml(item.desc.length>60?item.desc.slice(0,60)+'…':item.desc)}</option>`).join('');
+}
+
+document.querySelectorAll('#encGravRow [data-grav]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#encGravRow [data-grav]').forEach(b=>b.classList.remove('btn-accent'));
+    btn.classList.add('btn-accent');
+    encGravAtual = btn.dataset.grav;
+    encPopularCodigos(encGravAtual);
+  });
+});
+
+function encComprimirImagem(file, maxW, quality){
+  maxW = maxW || 1100; quality = quality || 0.72;
+  return new Promise(resolve=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w > maxW){ h = h*(maxW/w); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('encFotoInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await encComprimirImagem(file);
+    const nome = 'encnc-' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const resp = await uploadArquivoServidor(nome, 'image/jpeg', dataUrl);
+    encFotoAtual = { url: resp.url, path: resp.path };
+  }catch(err){
+    alert('Não foi possível enviar a foto: ' + err.message);
+  }
+});
+
+function encResetForm(){
+  document.getElementById('formEmailNc').reset();
+  encFotoAtual = null;
+  encGravAtual = null;
+  document.querySelectorAll('#encGravRow [data-grav]').forEach(b=>b.classList.remove('btn-accent'));
+  encPopularCodigos(null);
+}
+
+function encGerarToken(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g,'');
+  return Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+}
+
+document.getElementById('formEmailNc').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const descricao = document.getElementById('encDescricao').value.trim();
+  const supervisor = document.getElementById('encSupervisor').value.trim();
+  const encarregado = document.getElementById('encEncarregado').value.trim();
+  const lancadoPor = document.getElementById('encLancadoPor').value.trim();
+  const frota = document.getElementById('encFrota').value.trim();
+  const placa = document.getElementById('encPlaca').value.trim();
+  const email = document.getElementById('encEmail').value.trim();
+  const cc = [
+    document.getElementById('encCc1').value.trim(),
+    document.getElementById('encCc2').value.trim(),
+    document.getElementById('encCc3').value.trim(),
+    document.getElementById('encCc4').value.trim()
+  ].filter(Boolean);
+  const prazo = document.getElementById('encPrazo').value;
+  const codigo = document.getElementById('encCodigo').value;
+
+  if(!encGravAtual){ alert('Escolha a gravidade do ocorrido.'); return; }
+  if(!descricao){ alert('Descreva a ocorrência.'); return; }
+  if(!supervisor){ alert('Informe o nome do supervisor.'); return; }
+  if(!lancadoPor){ alert('Informe quem está lançando a tratativa.'); return; }
+
+  const btn = document.getElementById('encBtnSalvar');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const entry = {
+    id: newId(),
+    createdAt: new Date().toISOString(),
+    foto: encFotoAtual,
+    gravidade: encGravAtual,
+    codigo, descricao, supervisor, encarregado, lancadoPor, frota, placa,
+    email, cc, prazo,
+    status: 'Em andamento',
+    approvalToken: encGerarToken(),
+    tokenUsedAt: null, decision: null, decisionComment: null, decisionAt: null
+  };
+
+  STATE.emailnc.entries.unshift(entry);
+  await saveState();
+
+  if(email){
+    try{
+      await encEnviarEmail(entry);
+      alert('Tratativa salva e e-mail enviado ao destinatário principal.');
+    }catch(err){
+      alert('Tratativa salva, mas o e-mail não pôde ser enviado: ' + err.message);
+    }
+  }else{
+    alert('Tratativa salva.');
+  }
+
+  encResetForm();
+  btn.disabled = false; btn.textContent = 'Salvar tratativa';
+  renderEmailNc();
+});
+
+async function encGerarPdf(entry){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const marginX = 40;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const maxWidth = pageWidth - marginX*2;
+  let y = 50;
+  function quebraPagina(extra){ if(y+extra > pageHeight-40){ doc.addPage(); y=50; } }
+  function campo(rotulo, valor){
+    if(valor===null||valor===undefined||valor==='') valor='—';
+    quebraPagina(24);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
+    doc.text(String(rotulo)+':', marginX, y); y+=12;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+    const linhas = doc.splitTextToSize(String(valor), maxWidth-10);
+    linhas.forEach(l=>{ quebraPagina(13); doc.text(l, marginX+10, y); y+=12; });
+    y+=6;
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(14);
+  doc.text('Tratativa de campo — envio por e-mail', marginX, y); y+=18;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,120,120);
+  doc.text('Gerado em ' + new Date().toLocaleString('pt-BR'), marginX, y);
+  doc.setTextColor(20,20,20); y+=22;
+
+  campo('Gravidade', entry.gravidade + (entry.codigo ? ' ('+entry.codigo+')' : ''));
+  campo('Situação', entry.status + (entry.decision ? (entry.decision==='aprovado' ? ' — confirmado como feito' : ' — confirmado como não feito') : ''));
+  campo('Aberta em', new Date(entry.createdAt).toLocaleDateString('pt-BR'));
+  campo('Prazo para realizar', entry.prazo ? fmtData(entry.prazo) : '—');
+  campo('Supervisor', entry.supervisor);
+  campo('Encarregado', entry.encarregado);
+  campo('Lançado por', entry.lancadoPor);
+  campo('Frota', entry.frota);
+  campo('Placa', entry.placa);
+  campo('Destinatário principal', entry.email);
+  campo('Em cópia', (entry.cc && entry.cc.length) ? entry.cc.join(', ') : '—');
+  campo('Descrição da ocorrência', entry.descricao);
+  if(entry.decisionComment) campo('Comentário da resposta', entry.decisionComment);
+
+  if(entry.foto && entry.foto.url){
+    try{
+      const dataUrl = await urlParaDataUrl(entry.foto.url);
+      const props = doc.getImageProperties(dataUrl);
+      const maxImgH = 260;
+      const ratio = Math.min(maxWidth/props.width, maxImgH/props.height, 1);
+      quebraPagina(props.height*ratio + 10);
+      doc.addImage(dataUrl, 'JPEG', marginX, y, props.width*ratio, props.height*ratio);
+      y += props.height*ratio + 16;
+    }catch(err){ /* ignora imagem que não carregou */ }
+  }
+  return doc;
+}
+
+async function encEnviarEmail(entry){
+  const doc = await encGerarPdf(entry);
+  const datauri = doc.output('datauristring');
+  const base64 = datauri.split(',')[1];
+
+  const baseUrl = window.location.origin;
+  const linkAprovar = baseUrl + '/aprovar/' + entry.approvalToken;
+  const linkReprovar = baseUrl + '/reprovar/' + entry.approvalToken;
+  const cor = entry.gravidade==='Gravíssima' ? '#ef5b5b' : entry.gravidade==='Grave' ? '#e8a33d' : '#3ecf8e';
+
+  const html = `
+  <div style="font-family:Arial,sans-serif;color:#1a1a1a;max-width:560px;margin:0 auto;">
+    <h2 style="margin-bottom:4px;">Tratativa de campo</h2>
+    <p style="color:#666;margin-top:0;font-size:13px;">Você foi definido como responsável por avaliar esta tratativa.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;">
+      <tr><td style="padding:4px 0;color:#666;">Gravidade</td><td style="padding:4px 0;"><b style="color:${cor}">${escapeHtml(entry.gravidade)}${entry.codigo ? ' ('+escapeHtml(entry.codigo)+')' : ''}</b></td></tr>
+      <tr><td style="padding:4px 0;color:#666;">Prazo para realizar</td><td style="padding:4px 0;">${entry.prazo ? fmtData(entry.prazo) : '—'}</td></tr>
+      <tr><td style="padding:4px 0;color:#666;">Supervisor</td><td style="padding:4px 0;">${escapeHtml(entry.supervisor)||'—'}</td></tr>
+      <tr><td style="padding:4px 0;color:#666;">Encarregado</td><td style="padding:4px 0;">${escapeHtml(entry.encarregado)||'—'}</td></tr>
+      <tr><td style="padding:4px 0;color:#666;">Lançado por</td><td style="padding:4px 0;">${escapeHtml(entry.lancadoPor)||'—'}</td></tr>
+      ${(entry.frota||entry.placa) ? `<tr><td style="padding:4px 0;color:#666;">Frota / Placa</td><td style="padding:4px 0;">${escapeHtml(entry.frota)||'—'} / ${escapeHtml(entry.placa)||'—'}</td></tr>` : ''}
+    </table>
+    <p style="font-size:14px;"><b>Descrição:</b><br>${escapeHtml(entry.descricao||'—').replace(/\n/g,'<br>')}</p>
+    <p style="font-size:13px;color:#666;">O PDF com todos os detalhes e a foto está em anexo.</p>
+    <p style="margin:28px 0;">
+      <a href="${linkAprovar}" style="background:#3ecf8e;color:#0b1a12;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:bold;margin-right:10px;display:inline-block;">Foi feito</a>
+      <a href="${linkReprovar}" style="background:#ef5b5b;color:#2a0d0d;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:bold;display:inline-block;">Não foi feito</a>
+    </p>
+    <p style="font-size:12px;color:#999;">Ao clicar, você verá uma página pedindo para confirmar antes de registrar a resposta.</p>
+  </div>`;
+
+  const resp = await fetch('/api/enviar-email-nc', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      to: entry.email,
+      cc: entry.cc,
+      subject: `Tratativa de campo — ${entry.gravidade}${entry.codigo ? ' ('+entry.codigo+')' : ''} — aguardando sua resposta`,
+      html,
+      pdfBase64: base64,
+      filename: 'tratativa-' + entry.id + '.pdf'
+    })
+  });
+  if(resp.status === 401){ window.location.href = '/login'; return; }
+  if(!resp.ok){
+    let msg = 'Falha ao enviar e-mail.';
+    try{ const j = await resp.json(); if(j && j.error) msg = j.error; }catch(err){}
+    throw new Error(msg);
+  }
+}
+
+function encStatusCounts(list){
+  const c = {'Em andamento':0,'Concluído':0,'Vencido':0};
+  list.forEach(t=>{ if(c.hasOwnProperty(t.status)) c[t.status]++; });
+  return c;
+}
+function encIsOverdue(t){
+  if(t.status==='Concluído' || !t.prazo) return false;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  return new Date(t.prazo+'T00:00:00') < hoje;
+}
+function encRecorrenciaPorFrota(list){
+  const porFrotaGrav = {};
+  list.forEach(t=>{
+    if(!t.frota) return;
+    const chave = t.frota+'||'+t.gravidade;
+    porFrotaGrav[chave] = (porFrotaGrav[chave]||0)+1;
+  });
+  const total = {};
+  Object.entries(porFrotaGrav).forEach(([chave,qtd])=>{
+    if(qtd<2) return;
+    const frota = chave.split('||')[0];
+    total[frota] = (total[frota]||0)+qtd;
+  });
+  return total;
+}
+
+function encRenderStats(){
+  const list = STATE.emailnc.entries;
+  const c = encStatusCounts(list);
+  const vencidas = list.filter(t=>t.status==='Vencido' || encIsOverdue(t)).length;
+  const recorrentes = encRecorrenciaPorFrota(list);
+  const el = document.getElementById('statsEmailNc');
+  el.innerHTML =
+    '<div class="stat"><div class="num">'+list.length+'</div><div class="lbl">Total</div></div>' +
+    '<div class="stat warn"><div class="num">'+c['Em andamento']+'</div><div class="lbl">Em andamento</div></div>' +
+    '<div class="stat ok"><div class="num">'+c['Concluído']+'</div><div class="lbl">Concluídas</div></div>' +
+    '<div class="stat danger"><div class="num">'+vencidas+'</div><div class="lbl">Vencidas</div></div>' +
+    '<div class="stat warn"><div class="num">'+Object.keys(recorrentes).length+'</div><div class="lbl">Recorrência</div></div>';
+}
+
+const ENC_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function encPopularSelectData(diaId, mesId, anoId){
+  const diaSel = document.getElementById(diaId);
+  const mesSel = document.getElementById(mesId);
+  const anoSel = document.getElementById(anoId);
+  if(!diaSel || !mesSel || !anoSel) return;
+  if(!diaSel.dataset.pronto){
+    diaSel.innerHTML = '<option value="">Todos os dias</option>' +
+      Array.from({length:31},(_,i)=>i+1).map(d=>`<option value="${d}">${String(d).padStart(2,'0')}</option>`).join('');
+    diaSel.dataset.pronto = '1';
+  }
+  if(!mesSel.dataset.pronto){
+    mesSel.innerHTML = '<option value="">Todos os meses</option>' +
+      ENC_MESES.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+    mesSel.dataset.pronto = '1';
+  }
+  const anoAtual = anoSel.value;
+  const anos = Array.from(new Set(STATE.emailnc.entries.map(t=>new Date(t.createdAt).getFullYear()))).sort((a,b)=>b-a);
+  anoSel.innerHTML = '<option value="">Todos os anos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+  if(anos.includes(Number(anoAtual))) anoSel.value = anoAtual;
+}
+
+function encPassaFiltroData(t, diaId, mesId, anoId){
+  const dia = document.getElementById(diaId)?.value;
+  const mes = document.getElementById(mesId)?.value;
+  const ano = document.getElementById(anoId)?.value;
+  if(!dia && !mes && !ano) return true;
+  if(!t.createdAt) return false;
+  const d = new Date(t.createdAt);
+  if(dia && d.getDate() !== Number(dia)) return false;
+  if(mes && (d.getMonth()+1) !== Number(mes)) return false;
+  if(ano && d.getFullYear() !== Number(ano)) return false;
+  return true;
+}
+
+const ENC_CORES_FROTA = ['#e8a33d','#4c9eeb','#ef5b5b','#3ecf8e','#a78bfa','#f472b6','#38bdf8','#facc15'];
+
+function encRenderPainel(){
+  encPopularSelectData('encFiltroDia','encFiltroMes','encFiltroAno');
+  const list = STATE.emailnc.entries.filter(t=>encPassaFiltroData(t,'encFiltroDia','encFiltroMes','encFiltroAno'));
+
+  const c = encStatusCounts(list);
+  const ctxStatus = document.getElementById('chartEmailNcStatus');
+  if(chartEmailNcStatusInstance) chartEmailNcStatusInstance.destroy();
+  chartEmailNcStatusInstance = new Chart(ctxStatus, {
+    type: 'pie',
+    data: {
+      labels: ['Em andamento','Concluído','Vencido'],
+      datasets: [{ data: [c['Em andamento'], c['Concluído'], c['Vencido']], backgroundColor: ['#e8a33d','#3ecf8e','#ef5b5b'] }]
+    },
+    options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#eceff2', font:{size:11} } } } }
+  });
+
+  const totalPorFrota = encRecorrenciaPorFrota(list);
+  const frotas = Object.entries(totalPorFrota).sort((a,b)=>b[1]-a[1]);
+  const ctxFrota = document.getElementById('chartEmailNcFrota');
+  if(chartEmailNcFrotaInstance) chartEmailNcFrotaInstance.destroy();
+  chartEmailNcFrotaInstance = new Chart(ctxFrota, {
+    type: 'pie',
+    data: {
+      labels: frotas.map(f=>f[0]),
+      datasets: [{ data: frotas.map(f=>f[1]), backgroundColor: frotas.map((f,i)=>ENC_CORES_FROTA[i%ENC_CORES_FROTA.length]) }]
+    },
+    options: { plugins:{ legend:{ position:'bottom', labels:{ color:'#eceff2', font:{size:11} } } } }
+  });
+}
+['encFiltroDia','encFiltroMes','encFiltroAno'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('change', encRenderPainel);
+});
+
+function encClasseGrav(g){
+  if(g==='Gravíssima') return 'GRAVISSIMA';
+  if(g==='Grave') return 'GRAVE';
+  return 'LEVE';
+}
+function encBadgeStatus(t){
+  const overdue = encIsOverdue(t);
+  const map = {
+    'Em andamento': ['rgba(232,163,61,.18)', '#e8a33d', 'Em andamento'],
+    'Concluído': ['rgba(62,207,142,.18)', '#3ecf8e', 'Concluído'],
+    'Vencido': ['rgba(239,91,91,.18)', '#ef5b5b', 'Vencido']
+  };
+  const [bg,color,label] = map[t.status] || map['Em andamento'];
+  let html = `<span class="mini-badge" style="background:${bg};color:${color}">${label}</span>`;
+  if(overdue) html += ` <span class="mini-badge" style="background:rgba(239,91,91,.18);color:#ef5b5b">Prazo estourado</span>`;
+  return html;
+}
+
+function encRenderLista(){
+  encPopularSelectData('encListaFiltroDia','encListaFiltroMes','encListaFiltroAno');
+  const fPlaca = document.getElementById('encListaFiltroPlaca').value.trim().toLowerCase();
+  const fStatus = document.getElementById('encListaFiltroStatus').value;
+  const fGrav = document.getElementById('encListaFiltroGrav').value;
+  const list = STATE.emailnc.entries.filter(t=>{
+    if(fStatus && t.status !== fStatus) return false;
+    if(fGrav && t.gravidade !== fGrav) return false;
+    if(fPlaca && !((t.placa||'').toLowerCase().includes(fPlaca) || (t.frota||'').toLowerCase().includes(fPlaca))) return false;
+    if(!encPassaFiltroData(t,'encListaFiltroDia','encListaFiltroMes','encListaFiltroAno')) return false;
+    return true;
+  });
+
+  const cont = document.getElementById('encLista');
+  if(list.length === 0){
+    cont.innerHTML = '<div class="nc-empty">Nenhuma tratativa encontrada.</div>';
+    return;
+  }
+
+  cont.innerHTML = list.map(t=>{
+    const decisao = t.decision === 'aprovado' ? '✓ confirmado como feito' : t.decision === 'reprovado' ? '✕ confirmado como não feito' : (t.email ? 'Aguardando resposta do destinatário' : '');
+    return `
+    <div class="nc-card" data-id="${t.id}">
+      <div class="nc-card-head">
+        <div class="nc-card-head-left">
+          <span class="grav-badge ${encClasseGrav(t.gravidade)}">${escapeHtml(t.gravidade)}${t.codigo ? ' · '+escapeHtml(t.codigo) : ''}</span>
+          ${encBadgeStatus(t)}
+        </div>
+        <div class="nc-actions">
+          <select class="btn btn-sm" data-enc-status="${t.id}">
+            <option ${t.status==='Em andamento'?'selected':''}>Em andamento</option>
+            <option ${t.status==='Concluído'?'selected':''}>Concluído</option>
+            <option ${t.status==='Vencido'?'selected':''}>Vencido</option>
+          </select>
+          <button class="btn btn-sm" data-enc-pdf="${t.id}">PDF</button>
+          ${t.email ? `<button class="btn btn-sm" data-enc-reenviar="${t.id}">Reenviar e-mail</button>` : ''}
+          <button class="btn btn-sm btn-danger" data-enc-excluir="${t.id}">Excluir</button>
+        </div>
+      </div>
+      <div class="nc-desc">${escapeHtml(t.descricao)}</div>
+      <div class="nc-meta">
+        <span><b>Supervisor:</b> ${escapeHtml(t.supervisor)||'—'}</span>
+        <span><b>Encarregado:</b> ${escapeHtml(t.encarregado)||'—'}</span>
+        <span><b>Lançado por:</b> ${escapeHtml(t.lancadoPor)||'—'}</span>
+        ${t.frota ? `<span><b>Frota:</b> ${escapeHtml(t.frota)}</span>` : ''}
+        ${t.placa ? `<span><b>Placa:</b> ${escapeHtml(t.placa)}</span>` : ''}
+        <span><b>Prazo:</b> ${t.prazo ? fmtData(t.prazo) : '—'}</span>
+        ${decisao ? `<span>${decisao}</span>` : ''}
+      </div>
+      ${t.foto && t.foto.url ? `<div class="nc-card-photos"><img src="${t.foto.url}" alt=""></div>` : ''}
+    </div>`;
+  }).join('');
+
+  cont.querySelectorAll('[data-enc-status]').forEach(sel=>{
+    sel.addEventListener('change', async ()=>{
+      const t = STATE.emailnc.entries.find(x=>x.id===sel.dataset.encStatus);
+      t.status = sel.value;
+      await saveState();
+      renderEmailNc();
+    });
+  });
+  cont.querySelectorAll('[data-enc-pdf]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const t = STATE.emailnc.entries.find(x=>x.id===btn.dataset.encPdf);
+      const doc = await encGerarPdf(t);
+      doc.save('tratativa-'+t.id+'.pdf');
+    });
+  });
+  cont.querySelectorAll('[data-enc-reenviar]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const t = STATE.emailnc.entries.find(x=>x.id===btn.dataset.encReenviar);
+      btn.disabled = true; btn.textContent = 'Enviando...';
+      try{
+        if(t.tokenUsedAt){
+          t.approvalToken = encGerarToken();
+          t.tokenUsedAt = null; t.decision = null; t.decisionComment = null; t.decisionAt = null;
+          await saveState();
+        }
+        await encEnviarEmail(t);
+        alert('E-mail reenviado.');
+      }catch(err){
+        alert('Não foi possível reenviar o e-mail: ' + err.message);
+      }
+      btn.disabled = false; btn.textContent = 'Reenviar e-mail';
+      renderEmailNc();
+    });
+  });
+  cont.querySelectorAll('[data-enc-excluir]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Excluir esta tratativa?')) return;
+      const t = STATE.emailnc.entries.find(x=>x.id===btn.dataset.encExcluir);
+      if(t && t.foto && t.foto.path) removerArquivoServidor(t.foto.path);
+      STATE.emailnc.entries = STATE.emailnc.entries.filter(x=>x.id!==btn.dataset.encExcluir);
+      await saveState();
+      renderEmailNc();
+    });
+  });
+}
+
+['encListaFiltroStatus','encListaFiltroGrav','encListaFiltroDia','encListaFiltroMes','encListaFiltroAno'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('change', encRenderLista);
+});
+document.getElementById('encListaFiltroPlaca').addEventListener('input', encRenderLista);
+
+document.getElementById('btnRelatorioEmailNc').addEventListener('click', async ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const marginX = 40;
+  let y = 50;
+  doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('Relatório de tratativas por e-mail', marginX, y); y+=18;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,120,120);
+  doc.text(new Date().toLocaleDateString('pt-BR'), marginX, y);
+  doc.setTextColor(20,20,20); y+=22;
+  STATE.emailnc.entries.forEach((t,i)=>{
+    if(y > 760){ doc.addPage(); y = 50; }
+    doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text(`${i+1}. ${t.gravidade}${t.codigo ? ' ('+t.codigo+')' : ''} — ${t.status}`, marginX, y); y+=13;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    const linha = `${t.descricao||''}  |  Supervisor: ${t.supervisor||'—'}  |  Lançado por: ${t.lancadoPor||'—'}  |  Frota/Placa: ${t.frota||'—'}/${t.placa||'—'}  |  Prazo: ${t.prazo?fmtData(t.prazo):'—'}`;
+    const linhas = doc.splitTextToSize(linha, 515);
+    doc.text(linhas, marginX, y); y += linhas.length*11 + 8;
+  });
+  doc.save('relatorio-tratativas-email.pdf');
+});
+
+function renderEmailNc(){
+  encPopularCodigos(encGravAtual);
+  encRenderStats();
+  encRenderPainel();
+  encRenderLista();
+}
 
 (async function init(){
   await loadState();

@@ -21,6 +21,14 @@ const LOGIN_PASS = process.env.LOGIN_PASS || 'admin';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'troque-este-segredo-em-producao';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 dias, em segundos
 
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL;
+const FROM_NAME = process.env.FROM_NAME || 'Controle de Coletas';
+
+if (!BREVO_API_KEY || !FROM_EMAIL) {
+  console.warn('Aviso: BREVO_API_KEY / FROM_EMAIL nao configuradas. O envio de e-mail da aba "Email NC" vai falhar ate configurar essas variaveis.');
+}
+
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.warn('Aviso: SUPABASE_URL / SUPABASE_SERVICE_KEY nao configuradas. A API /api/estado vai falhar ate configurar essas variaveis de ambiente.');
 }
@@ -87,6 +95,11 @@ function sendJSON(res, status, body, extraHeaders) {
   res.end(JSON.stringify(body));
 }
 
+function sendHTML(res, status, html) {
+  res.writeHead(status, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+
 function serveFile(res, filePath) {
   const ext = path.extname(filePath);
   const types = {
@@ -114,6 +127,121 @@ function lerCorpoJSON(req) {
     });
     req.on('error', reject);
   });
+}
+
+function lerCorpoFormulario(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      const out = {};
+      new URLSearchParams(body).forEach((v, k) => { out[k] = v; });
+      resolve(out);
+    });
+    req.on('error', reject);
+  });
+}
+
+// ---------- E-mail (Brevo, via HTTPS) ----------
+// Usa a API HTTP da Brevo em vez de SMTP porque o Render bloqueia portas
+// SMTP (25/465/587) de saida no plano gratuito.
+
+async function enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename }) {
+  if (!BREVO_API_KEY) throw new Error('BREVO_API_KEY nao configurada.');
+  if (!FROM_EMAIL) throw new Error('FROM_EMAIL nao configurado.');
+
+  const body = {
+    sender: { name: FROM_NAME, email: FROM_EMAIL },
+    to: [{ email: to }],
+    subject,
+    htmlContent: html
+  };
+  if (cc && cc.length) body.cc = cc.map((email) => ({ email }));
+  if (pdfBase64) body.attachment = [{ content: pdfBase64, name: filename || 'anexo.pdf' }];
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  let resp;
+  try {
+    resp = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Tempo esgotado ao tentar enviar o e-mail (Brevo nao respondeu a tempo).');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!resp.ok) {
+    let detalhe = '';
+    try { detalhe = (await resp.json()).message || ''; } catch (e) { /* ignora */ }
+    throw new Error(`Falha ao enviar e-mail (Brevo respondeu ${resp.status}). ${detalhe}`);
+  }
+}
+
+// ---------- paginas publicas simples (aprovar/reprovar) ----------
+
+function paginaSimples(titulo, mensagem, cor) {
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1"><title>${titulo}</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#10131a;color:#eceff2;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;}
+    .box{max-width:420px;text-align:center;background:#181c23;border:1px solid #2b313a;border-radius:14px;padding:32px 26px;}
+    h1{font-size:1.2rem;margin-bottom:10px;color:${cor || '#eceff2'};}
+    p{color:#8c95a2;font-size:0.92rem;line-height:1.6;}
+  </style></head><body><div class="box"><h1>${titulo}</h1><p>${mensagem}</p></div></body></html>`;
+}
+function paginaConfirmacao(titulo, corBotao, textoBotao, formAction, extraCampo) {
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1"><title>${titulo}</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#10131a;color:#eceff2;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;}
+    .box{max-width:440px;width:100%;background:#181c23;border:1px solid #2b313a;border-radius:14px;padding:32px 26px;}
+    h1{font-size:1.15rem;margin-bottom:14px;}
+    textarea{width:100%;min-height:80px;border-radius:8px;border:1px solid #2b313a;background:#1f242c;color:#eceff2;padding:10px;font-family:Arial,sans-serif;margin-bottom:16px;box-sizing:border-box;}
+    button{width:100%;padding:12px;border:none;border-radius:8px;background:${corBotao};color:#0d1013;font-weight:bold;font-size:0.95rem;cursor:pointer;}
+  </style></head><body><div class="box">
+    <h1>${titulo}</h1>
+    <form method="POST" action="${formAction}">
+      ${extraCampo || ''}
+      <button type="submit">${textoBotao}</button>
+    </form>
+  </div></body></html>`;
+}
+
+async function processarDecisaoEmailNc(res, token, decisao, novoStatus, comentario) {
+  let data;
+  try { data = await getEstado(); }
+  catch (e) { return sendHTML(res, 500, 'Erro interno. Tente novamente em instantes.'); }
+  const entries = (data && data.emailnc && Array.isArray(data.emailnc.entries)) ? data.emailnc.entries : [];
+  const entry = entries.find(e => e.approvalToken === token);
+  if (!entry) {
+    return sendHTML(res, 404, paginaSimples('Link invalido', 'Nao encontramos nenhuma tratativa associada a este link.', '#ef5b5b'));
+  }
+  if (entry.tokenUsedAt) {
+    return sendHTML(res, 200, paginaSimples(
+      'Ja respondida',
+      `Esta tratativa ja foi marcada como <b>${entry.decision === 'aprovado' ? 'feita' : 'nao feita'}</b> anteriormente.`,
+      '#8c95a2'
+    ));
+  }
+  entry.status = novoStatus;
+  entry.decision = decisao;
+  entry.decisionComment = comentario || null;
+  entry.decisionAt = new Date().toISOString();
+  entry.tokenUsedAt = new Date().toISOString();
+  await saveEstado(data);
+
+  return sendHTML(res, 200, paginaSimples(
+    decisao === 'aprovado' ? 'Obrigado pela confirmacao!' : 'Resposta registrada',
+    decisao === 'aprovado'
+      ? 'A tratativa foi marcada como <b>feita</b>. Quem lancou ja pode acompanhar essa atualizacao no sistema.'
+      : 'A tratativa foi marcada como <b>nao feita</b>. Quem lancou vai dar continuidade.',
+    decisao === 'aprovado' ? '#3ecf8e' : '#ef5b5b'
+  ));
 }
 
 // ---------- Supabase ----------
@@ -286,8 +414,44 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // paginas publicas de aprovacao da aba "Email NC" (quem clica e' o destinatario do e-mail, sem login)
+  if (urlPath.startsWith('/aprovar/') && req.method === 'GET') {
+    const token = urlPath.split('/')[2];
+    return sendHTML(res, 200, paginaConfirmacao('Confirmar tratativa como feita', '#3ecf8e', 'Confirmar que foi feita', `/aprovar/${token}`));
+  }
+  if (urlPath.startsWith('/aprovar/') && req.method === 'POST') {
+    const token = urlPath.split('/')[2];
+    return await processarDecisaoEmailNc(res, token, 'aprovado', 'Concluído', null);
+  }
+  if (urlPath.startsWith('/reprovar/') && req.method === 'GET') {
+    const token = urlPath.split('/')[2];
+    return sendHTML(res, 200, paginaConfirmacao(
+      'Confirmar que não foi feita', '#ef5b5b', 'Confirmar que não foi feita', `/reprovar/${token}`,
+      `<textarea name="comentario" placeholder="Motivo (opcional)"></textarea>`
+    ));
+  }
+  if (urlPath.startsWith('/reprovar/') && req.method === 'POST') {
+    const token = urlPath.split('/')[2];
+    const form = await lerCorpoFormulario(req);
+    return await processarDecisaoEmailNc(res, token, 'reprovado', 'Vencido', form.comentario || null);
+  }
+
   // tudo daqui pra baixo exige sessao valida
   const autenticado = estaAutenticado(req);
+
+  if (urlPath === '/api/enviar-email-nc' && req.method === 'POST') {
+    if (!autenticado) { sendJSON(res, 401, { error: 'Nao autenticado' }); return; }
+    try {
+      const { to, cc, subject, html, pdfBase64, filename } = await lerCorpoJSON(req);
+      if (!to) { sendJSON(res, 400, { error: 'Destinatario nao informado.' }); return; }
+      await enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename });
+      sendJSON(res, 200, { ok: true });
+    } catch (e) {
+      console.error('Falha ao enviar e-mail (Email NC):', e.message);
+      sendJSON(res, 500, { error: e.message });
+    }
+    return;
+  }
 
   if (urlPath === '/api/estado' && req.method === 'GET') {
     if (!autenticado) { sendJSON(res, 401, { error: 'Nao autenticado' }); return; }
