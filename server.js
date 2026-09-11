@@ -146,7 +146,7 @@ function lerCorpoFormulario(req) {
 // Usa a API HTTP da Brevo em vez de SMTP porque o Render bloqueia portas
 // SMTP (25/465/587) de saida no plano gratuito.
 
-async function enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename }) {
+async function enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename, attachments }) {
   if (!BREVO_API_KEY) throw new Error('BREVO_API_KEY nao configurada.');
   if (!FROM_EMAIL) throw new Error('FROM_EMAIL nao configurado.');
 
@@ -157,7 +157,13 @@ async function enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename }) 
     htmlContent: html
   };
   if (cc && cc.length) body.cc = cc.map((email) => ({ email }));
-  if (pdfBase64) body.attachment = [{ content: pdfBase64, name: filename || 'anexo.pdf' }];
+
+  const listaAnexos = Array.isArray(attachments) && attachments.length
+    ? attachments
+    : (pdfBase64 ? [{ content: pdfBase64, name: filename || 'anexo.pdf' }] : []);
+  if (listaAnexos.length) {
+    body.attachment = listaAnexos.map(a => ({ content: a.content, name: a.name || 'anexo.pdf' }));
+  }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
@@ -442,9 +448,9 @@ const server = http.createServer(async (req, res) => {
   if (urlPath === '/api/enviar-email-nc' && req.method === 'POST') {
     if (!autenticado) { sendJSON(res, 401, { error: 'Nao autenticado' }); return; }
     try {
-      const { to, cc, subject, html, pdfBase64, filename } = await lerCorpoJSON(req);
+      const { to, cc, subject, html, pdfBase64, filename, attachments } = await lerCorpoJSON(req);
       if (!to) { sendJSON(res, 400, { error: 'Destinatario nao informado.' }); return; }
-      await enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename });
+      await enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename, attachments });
       sendJSON(res, 200, { ok: true });
     } catch (e) {
       console.error('Falha ao enviar e-mail (Email NC):', e.message);
