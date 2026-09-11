@@ -3362,9 +3362,20 @@ document.querySelectorAll('#view-emailnc .enc-tab-btn').forEach(btn=>{
 
 function encPopularCodigos(gravidade){
   const sel = document.getElementById('encCodigo');
-  const lista = gravidade && window.NC_CODES ? window.NC_CODES[gravidade] : null;
-  if(!lista){
+  if(!gravidade){
     sel.innerHTML = '<option value="">Selecione a gravidade acima primeiro</option>';
+    sel.disabled = true;
+    return;
+  }
+  if(!window.NC_CODES){
+    sel.innerHTML = '<option value="">Erro: arquivo nc-codes.js não carregou</option>';
+    sel.disabled = true;
+    console.error('window.NC_CODES não está definido. Verifique se public/nc-codes.js existe no seu repositório e se a tag <script src="/nc-codes.js"> está presente no <head> do index.html.');
+    return;
+  }
+  const lista = window.NC_CODES[gravidade];
+  if(!lista){
+    sel.innerHTML = '<option value="">Nenhum código encontrado para esta gravidade</option>';
     sel.disabled = true;
     return;
   }
