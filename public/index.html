@@ -396,6 +396,112 @@
   .nc-doc-add{width:96px;height:84px;border-radius:8px;border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);font-size:11px;background:transparent;cursor:pointer;flex-shrink:0;}
   .nc-doc-add:hover{border-color:var(--accent);color:var(--accent);}
 
+
+/* ===================== EMAIL NC — visual idêntico ao app "Tratativas de Campo" ===================== */
+#view-emailnc{
+  --enc-bg:#11151A; --enc-panel:#1A2029; --enc-panel-2:#212836;
+  --enc-border:#2B3441; --enc-border-light:#374050;
+  --enc-text:#E8EBEF; --enc-text-dim:#93A0B0; --enc-text-faint:#5C6B7C;
+  --enc-accent:#3E93A6; --enc-accent-dim:#2C6B79; --enc-accent-text:#0C1216;
+  --enc-danger:#D6564C; --enc-warning:#E0A83E; --enc-ok:#4C9E71;
+  --enc-sans:'IBM Plex Sans', -apple-system, sans-serif;
+  --enc-mono:'IBM Plex Mono','SFMono-Regular', monospace;
+  font-family:var(--enc-sans);
+  color:var(--enc-text);
+}
+#view-emailnc *{box-sizing:border-box;}
+
+#view-emailnc .enc-tabs{display:flex;gap:6px;background:var(--enc-panel);border:1px solid var(--enc-border);padding:4px;border-radius:10px;width:fit-content;margin-bottom:20px;}
+#view-emailnc .enc-tab-btn{appearance:none;border:none;background:transparent;color:var(--enc-text-dim);padding:8px 16px;border-radius:7px;font-family:var(--enc-sans);font-size:0.88rem;font-weight:500;cursor:pointer;transition:background .15s, color .15s;}
+#view-emailnc .enc-tab-btn.active{background:var(--enc-accent);color:var(--enc-accent-text);font-weight:600;}
+#view-emailnc .enc-tab-btn:not(.active):hover{color:var(--enc-text);background:var(--enc-panel-2);}
+
+#view-emailnc .enc-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+#view-emailnc .enc-stat{background:var(--enc-panel);border:1px solid var(--enc-border);border-radius:10px;padding:14px 16px;}
+#view-emailnc .enc-stat .enc-num{font-family:var(--enc-mono);font-size:1.6rem;font-weight:600;line-height:1;color:var(--enc-text);}
+#view-emailnc .enc-stat .enc-lbl{margin-top:6px;font-size:0.78rem;color:var(--enc-text-dim);}
+#view-emailnc .enc-stat.andamento .enc-num{color:var(--enc-accent);}
+#view-emailnc .enc-stat.concluido .enc-num{color:var(--enc-ok);}
+#view-emailnc .enc-stat.vencido .enc-num{color:var(--enc-danger);}
+#view-emailnc .enc-stat.recorrencia .enc-num{color:var(--enc-warning);}
+
+#view-emailnc .enc-view{display:none;}
+#view-emailnc .enc-view.active{display:block;}
+
+#view-emailnc .enc-panel{background:var(--enc-panel);border:1px solid var(--enc-border);border-radius:14px;padding:22px;}
+#view-emailnc .enc-panel + .enc-panel{margin-top:16px;}
+
+#view-emailnc .enc-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+#view-emailnc .enc-field{display:flex;flex-direction:column;gap:6px;}
+#view-emailnc .enc-field.enc-full{grid-column:1/-1;}
+#view-emailnc .enc-field label{font-size:0.82rem;color:var(--enc-text-dim);font-weight:500;}
+#view-emailnc .enc-hint{font-size:0.74rem;color:var(--enc-text-faint);margin-top:-2px;}
+#view-emailnc input[type=text], #view-emailnc input[type=email], #view-emailnc input[type=date], #view-emailnc textarea, #view-emailnc select{
+  font-family:var(--enc-sans);font-size:0.92rem;color:var(--enc-text);background:var(--enc-panel-2);
+  border:1px solid var(--enc-border-light);border-radius:8px;padding:10px 12px;width:100%;
+}
+#view-emailnc textarea{resize:vertical;min-height:76px;}
+#view-emailnc input:focus, #view-emailnc textarea:focus, #view-emailnc select:focus{outline:none;border-color:var(--enc-accent);box-shadow:0 0 0 3px rgba(62,147,166,.18);}
+#view-emailnc select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--enc-text-dim) 50%),linear-gradient(135deg,var(--enc-text-dim) 50%,transparent 50%);background-position:calc(100% - 18px) calc(50% - 3px),calc(100% - 13px) calc(50% - 3px);background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+
+#view-emailnc .enc-sev-row{display:flex;gap:8px;}
+#view-emailnc .enc-sev-opt{appearance:none;font-family:var(--enc-sans);flex:1;border:1px solid var(--enc-border-light);border-radius:8px;padding:10px 8px;text-align:center;cursor:pointer;font-size:0.84rem;font-weight:600;color:var(--enc-text-dim);background:var(--enc-panel-2);transition:all .12s;}
+#view-emailnc .enc-sev-opt:hover{border-color:var(--enc-text-dim);}
+#view-emailnc .enc-sev-opt.selected{font-weight:700;}
+#view-emailnc .enc-sev-opt[data-grav="Gravíssima"].selected{background:rgba(214,86,76,.28) !important;border-color:var(--enc-danger) !important;color:#ffffff !important;}
+#view-emailnc .enc-sev-opt[data-grav="Grave"].selected{background:rgba(224,168,62,.28) !important;border-color:var(--enc-warning) !important;color:#ffffff !important;}
+#view-emailnc .enc-sev-opt[data-grav="Leve"].selected{background:rgba(76,158,113,.28) !important;border-color:var(--enc-ok) !important;color:#ffffff !important;}
+
+#view-emailnc .enc-photo-drop{border:1.5px dashed var(--enc-border-light);border-radius:10px;padding:18px;text-align:center;cursor:pointer;color:var(--enc-text-dim);font-size:0.86rem;position:relative;overflow:hidden;background:var(--enc-panel-2);}
+#view-emailnc .enc-photo-drop:hover{border-color:var(--enc-accent);}
+#view-emailnc .enc-photo-drop img{max-width:100%;max-height:220px;border-radius:6px;display:block;margin:0 auto;}
+#view-emailnc .enc-photo-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+#view-emailnc .enc-photo-drop .enc-placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;}
+
+#view-emailnc .enc-btn{appearance:none;border:1px solid var(--enc-border-light);background:var(--enc-panel-2);color:var(--enc-text);font-family:var(--enc-sans);font-size:0.88rem;font-weight:500;padding:10px 18px;border-radius:8px;cursor:pointer;transition:filter .12s, background .12s;}
+#view-emailnc .enc-btn:hover{filter:brightness(1.12);}
+#view-emailnc .enc-btn:disabled{opacity:.6;cursor:default;}
+#view-emailnc .enc-btn-primary{background:var(--enc-accent);border-color:var(--enc-accent);color:var(--enc-accent-text);font-weight:600;}
+#view-emailnc .enc-btn-danger{color:var(--enc-danger);}
+#view-emailnc .enc-btn-ghost{background:transparent;border-color:transparent;color:var(--enc-text-dim);}
+#view-emailnc .enc-btn-ghost:hover{color:var(--enc-text);background:var(--enc-panel-2);}
+#view-emailnc .enc-btn-sm{padding:6px 12px;font-size:0.8rem;}
+#view-emailnc .enc-actions-row{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+
+#view-emailnc .enc-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+#view-emailnc .enc-filters select, #view-emailnc .enc-filters input{width:auto;padding:7px 10px;font-size:0.82rem;}
+#view-emailnc .enc-filters .enc-spacer{flex:1;}
+
+#view-emailnc .enc-empty{text-align:center;padding:48px 20px;color:var(--enc-text-dim);}
+
+#view-emailnc .enc-list-item{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;padding:14px;border:1px solid var(--enc-border);border-radius:12px;background:var(--enc-panel-2);}
+#view-emailnc .enc-list-item + .enc-list-item{margin-top:10px;}
+#view-emailnc .enc-thumb{width:64px;height:64px;border-radius:8px;object-fit:cover;background:#0E1216;border:1px solid var(--enc-border);}
+#view-emailnc .enc-thumb.enc-empty-thumb{display:flex;align-items:center;justify-content:center;color:var(--enc-text-faint);}
+#view-emailnc .enc-li-main{min-width:0;}
+#view-emailnc .enc-li-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+#view-emailnc .enc-badge{font-size:0.7rem;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--enc-mono);letter-spacing:.02em;}
+#view-emailnc .enc-badge.Gravíssima{background:rgba(214,86,76,.16);color:var(--enc-danger);}
+#view-emailnc .enc-badge.Grave{background:rgba(224,168,62,.16);color:var(--enc-warning);}
+#view-emailnc .enc-badge.Leve{background:rgba(76,158,113,.16);color:var(--enc-ok);}
+#view-emailnc .enc-badge.status-andamento{background:rgba(62,147,166,.16);color:var(--enc-accent);}
+#view-emailnc .enc-badge.status-concluido{background:rgba(76,158,113,.16);color:var(--enc-ok);}
+#view-emailnc .enc-badge.status-vencido{background:rgba(214,86,76,.16);color:var(--enc-danger);}
+#view-emailnc .enc-li-title{font-size:0.94rem;font-weight:600;margin:0 0 2px;}
+#view-emailnc .enc-li-meta{font-size:0.78rem;color:var(--enc-text-dim);display:flex;gap:10px;flex-wrap:wrap;}
+#view-emailnc .enc-li-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+#view-emailnc .enc-li-actions .enc-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+
+#view-emailnc .enc-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+#view-emailnc .enc-chart-title{margin:0 0 16px;font-size:0.98rem;font-weight:600;color:var(--enc-text);}
+
+@media (max-width:640px){
+  #view-emailnc .enc-form-grid{grid-template-columns:1fr;}
+  #view-emailnc .enc-stats{grid-template-columns:repeat(2,1fr);}
+  #view-emailnc .enc-list-item{grid-template-columns:52px 1fr;}
+  #view-emailnc .enc-li-actions{grid-column:1/-1;flex-direction:row;justify-content:flex-end;}
+  #view-emailnc .enc-panel-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
@@ -639,97 +745,116 @@
 </div>
 
 <div id="view-emailnc" class="view-wrap" style="display:none">
-  <div class="stats" id="statsEmailNc" style="grid-template-columns:repeat(5,1fr);"></div>
 
-  <div class="panel">
-    <h2>Painel</h2>
-    <p class="panel-sub">Situação geral e frotas com não conformidades recorrentes, por período de lançamento.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-      <select id="encFiltroDia"></select>
-      <select id="encFiltroMes"></select>
-      <select id="encFiltroAno"></select>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="#3E93A6"/></svg>
+        <h2 style="margin:0;font-size:1.3rem;color:#E8EBEF;">Email NC</h2>
+      </div>
+      <p style="margin:4px 0 0;color:#93A0B0;font-size:0.86rem;">Registro e acompanhamento de não conformidades por e-mail, com aprovação do responsável</p>
     </div>
-    <div style="display:flex;gap:24px;flex-wrap:wrap;">
-      <div class="chart-box" style="height:240px;max-width:360px;flex:1;min-width:260px;">
-        <canvas id="chartEmailNcStatus"></canvas>
-      </div>
-      <div class="chart-box" style="height:240px;max-width:360px;flex:1;min-width:260px;">
-        <canvas id="chartEmailNcFrota"></canvas>
-      </div>
+    <div class="enc-tabs">
+      <button type="button" class="enc-tab-btn active" data-enctab="novo">Nova tratativa</button>
+      <button type="button" class="enc-tab-btn" data-enctab="lista">Tratativas</button>
+      <button type="button" class="enc-tab-btn" data-enctab="painel">Painel</button>
     </div>
   </div>
 
-  <div class="panel">
-    <h2>Nova tratativa por e-mail</h2>
-    <p class="panel-sub">Registra a ocorrência, envia por e-mail para o responsável e recebe a confirmação automaticamente quando ele responder.</p>
-    <form id="formEmailNc">
-      <div class="trat-form">
-        <div class="campo">
-          <label>Foto do ocorrido</label>
-          <input type="file" accept="image/*" capture="environment" id="encFotoInput">
-        </div>
-        <div class="campo">
-          <label>Gravidade</label>
-          <div style="display:flex;gap:6px;" id="encGravRow">
-            <button type="button" class="btn btn-sm" data-grav="Gravíssima">Gravíssima</button>
-            <button type="button" class="btn btn-sm" data-grav="Grave">Grave</button>
-            <button type="button" class="btn btn-sm" data-grav="Leve">Leve</button>
+  <div class="enc-stats" id="statsEmailNc"></div>
+
+  <!-- ---- NOVA TRATATIVA ---- -->
+  <div class="enc-view active" id="encview-novo">
+    <div class="enc-panel">
+      <form id="formEmailNc">
+        <div class="enc-form-grid">
+
+          <div class="enc-field enc-full">
+            <label>Foto do ocorrido</label>
+            <div class="enc-photo-drop" id="encPhotoDrop">
+              <input type="file" accept="image/*" capture="environment" id="encFotoInput">
+              <div class="enc-placeholder" id="encPhotoPlaceholder">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+                <span>Toque para tirar ou escolher uma foto</span>
+              </div>
+              <img id="encPhotoPreview" style="display:none;">
+            </div>
+          </div>
+
+          <div class="enc-field enc-full">
+            <label>Gravidade</label>
+            <div class="enc-sev-row" id="encGravRow">
+              <button type="button" class="enc-sev-opt" data-grav="Gravíssima">Gravíssima</button>
+              <button type="button" class="enc-sev-opt" data-grav="Grave">Grave</button>
+              <button type="button" class="enc-sev-opt" data-grav="Leve">Leve</button>
+            </div>
+            <div class="enc-hint">Classificação conforme os checklists ISP (Linha Morta / Linha Viva)</div>
+          </div>
+
+          <div class="enc-field">
+            <label>Código da NC</label>
+            <select id="encCodigo" disabled><option value="">Selecione a gravidade acima primeiro</option></select>
+          </div>
+
+          <div class="enc-field">
+            <label>Prazo para realizar a tratativa</label>
+            <input type="date" id="encPrazo">
+          </div>
+
+          <div class="enc-field enc-full">
+            <label>Descrição da ocorrência</label>
+            <textarea id="encDescricao" placeholder="O que aconteceu, onde e o que precisa ser corrigido"></textarea>
+          </div>
+
+          <div class="enc-field">
+            <label>Nome do supervisor</label>
+            <input type="text" id="encSupervisor" placeholder="Nome do supervisor responsável">
+          </div>
+          <div class="enc-field">
+            <label>Encarregado</label>
+            <input type="text" id="encEncarregado" placeholder="Nome do encarregado">
+          </div>
+          <div class="enc-field">
+            <label>Lançado por</label>
+            <input type="text" id="encLancadoPor" placeholder="Seu nome">
+          </div>
+          <div class="enc-field">
+            <label>Frota</label>
+            <input type="text" id="encFrota" placeholder="Ex.: Frota 12">
+          </div>
+          <div class="enc-field">
+            <label>Placa</label>
+            <input type="text" id="encPlaca" placeholder="Ex.: ABC1D23">
+          </div>
+
+          <div class="enc-field enc-full">
+            <label>E-mail do responsável pela aprovação (destinatário principal)</label>
+            <input type="email" id="encEmail" placeholder="nome@empresa.com">
+            <div class="enc-hint">Ao salvar, essa pessoa recebe a tratativa em PDF por e-mail e pode confirmar se foi feita ou não</div>
+          </div>
+
+          <div class="enc-field enc-full">
+            <label>E-mails em cópia (opcional)</label>
+            <div class="enc-form-grid" style="gap:10px;">
+              <input type="email" id="encCc1" placeholder="E-mail em cópia 1">
+              <input type="email" id="encCc2" placeholder="E-mail em cópia 2">
+              <input type="email" id="encCc3" placeholder="E-mail em cópia 3">
+              <input type="email" id="encCc4" placeholder="E-mail em cópia 4">
+            </div>
           </div>
         </div>
-        <div class="campo">
-          <label>Código da NC</label>
-          <select id="encCodigo" disabled><option value="">Selecione a gravidade</option></select>
+
+        <div class="enc-actions-row">
+          <button type="button" class="enc-btn enc-btn-ghost" id="encBtnLimpar">Limpar</button>
+          <button type="submit" class="enc-btn enc-btn-primary" id="encBtnSalvar">Salvar tratativa</button>
         </div>
-        <div class="campo">
-          <label>Prazo para realizar</label>
-          <input type="date" id="encPrazo">
-        </div>
-        <div class="campo campo-larga campo-full">
-          <label>Descrição da ocorrência</label>
-          <textarea id="encDescricao"></textarea>
-        </div>
-        <div class="campo">
-          <label>Supervisor</label>
-          <input type="text" id="encSupervisor">
-        </div>
-        <div class="campo">
-          <label>Encarregado</label>
-          <input type="text" id="encEncarregado">
-        </div>
-        <div class="campo">
-          <label>Lançado por</label>
-          <input type="text" id="encLancadoPor">
-        </div>
-        <div class="campo">
-          <label>Frota</label>
-          <input type="text" id="encFrota">
-        </div>
-        <div class="campo">
-          <label>Placa</label>
-          <input type="text" id="encPlaca">
-        </div>
-        <div class="campo campo-larga campo-full">
-          <label>E-mail do responsável pela aprovação (destinatário principal)</label>
-          <input type="email" id="encEmail">
-        </div>
-        <div class="campo"><label>E-mail em cópia 1</label><input type="email" id="encCc1"></div>
-        <div class="campo"><label>E-mail em cópia 2</label><input type="email" id="encCc2"></div>
-        <div class="campo"><label>E-mail em cópia 3</label><input type="email" id="encCc3"></div>
-        <div class="campo"><label>E-mail em cópia 4</label><input type="email" id="encCc4"></div>
-      </div>
-      <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:10px;">
-        <button type="submit" class="btn btn-accent" id="encBtnSalvar">Salvar tratativa</button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-      <h2 style="margin:0;">Tratativas lançadas</h2>
-      <button class="btn btn-sm" id="btnRelatorioEmailNc">Baixar relatório (PDF)</button>
-    </div>
-    <div class="nc-toolbar">
-      <input type="text" id="encListaFiltroPlaca" placeholder="Buscar por placa ou frota">
+  <!-- ---- TRATATIVAS (LISTA) ---- -->
+  <div class="enc-view" id="encview-lista">
+    <div class="enc-filters">
       <select id="encListaFiltroStatus">
         <option value="">Todas as situações</option>
         <option>Em andamento</option>
@@ -742,12 +867,37 @@
         <option>Grave</option>
         <option>Leve</option>
       </select>
+      <input type="text" id="encListaFiltroPlaca" placeholder="Filtrar por placa ou frota" style="width:180px;">
       <select id="encListaFiltroDia"></select>
       <select id="encListaFiltroMes"></select>
       <select id="encListaFiltroAno"></select>
+      <div class="enc-spacer"></div>
+      <button type="button" class="enc-btn enc-btn-sm" id="btnRelatorioEmailNc">Baixar relatório completo (PDF)</button>
     </div>
-    <div class="nc-list" id="encLista"></div>
+    <div id="encLista"></div>
   </div>
+
+  <!-- ---- PAINEL ---- -->
+  <div class="enc-view" id="encview-painel">
+    <div class="enc-panel">
+      <div class="enc-filters" style="margin-bottom:0;">
+        <select id="encFiltroDia"></select>
+        <select id="encFiltroMes"></select>
+        <select id="encFiltroAno"></select>
+      </div>
+    </div>
+    <div class="enc-panel-grid" style="margin-top:16px;">
+      <div class="enc-panel">
+        <h3 class="enc-chart-title">Situação das tratativas</h3>
+        <div style="height:240px;"><canvas id="chartEmailNcStatus"></canvas></div>
+      </div>
+      <div class="enc-panel">
+        <h3 class="enc-chart-title">Frotas com não conformidades recorrentes</h3>
+        <div style="height:240px;"><canvas id="chartEmailNcFrota"></canvas></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 
@@ -3198,11 +3348,23 @@ document.addEventListener('click', async (e)=>{
 let encFotoAtual = null;
 let encGravAtual = null;
 
+// sub-abas internas: Nova tratativa / Tratativas / Painel
+document.querySelectorAll('#view-emailnc .enc-tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#view-emailnc .enc-tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#view-emailnc .enc-view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('encview-'+btn.dataset.enctab).classList.add('active');
+    if(btn.dataset.enctab==='lista') encRenderLista();
+    if(btn.dataset.enctab==='painel') encRenderPainel();
+  });
+});
+
 function encPopularCodigos(gravidade){
   const sel = document.getElementById('encCodigo');
   const lista = gravidade && window.NC_CODES ? window.NC_CODES[gravidade] : null;
   if(!lista){
-    sel.innerHTML = '<option value="">Selecione a gravidade</option>';
+    sel.innerHTML = '<option value="">Selecione a gravidade acima primeiro</option>';
     sel.disabled = true;
     return;
   }
@@ -3211,11 +3373,23 @@ function encPopularCodigos(gravidade){
     lista.map(item=>`<option value="${escapeHtml(item.code)}">${escapeHtml(item.code)} — ${escapeHtml(item.desc.length>60?item.desc.slice(0,60)+'…':item.desc)}</option>`).join('');
 }
 
-document.querySelectorAll('#encGravRow [data-grav]').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('#encGravRow [data-grav]').forEach(b=>b.classList.remove('btn-accent'));
-    btn.classList.add('btn-accent');
-    encGravAtual = btn.dataset.grav;
+const ENC_COR_GRAV = {
+  'Gravíssima': { bg: 'rgba(214,86,76,.28)', border: '#D6564C' },
+  'Grave': { bg: 'rgba(224,168,62,.28)', border: '#E0A83E' },
+  'Leve': { bg: 'rgba(76,158,113,.28)', border: '#4C9E71' }
+};
+document.querySelectorAll('#encGravRow [data-grav]').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    document.querySelectorAll('#encGravRow [data-grav]').forEach(o=>{
+      o.classList.remove('selected');
+      o.style.background = '';
+      o.style.borderColor = '';
+      o.style.color = '';
+    });
+    opt.classList.add('selected');
+    const cor = ENC_COR_GRAV[opt.dataset.grav];
+    if(cor){ opt.style.background = cor.bg; opt.style.borderColor = cor.border; opt.style.color = '#ffffff'; }
+    encGravAtual = opt.dataset.grav;
     encPopularCodigos(encGravAtual);
   });
 });
@@ -3243,13 +3417,20 @@ function encComprimirImagem(file, maxW, quality){
 document.getElementById('encFotoInput').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
+  const preview = document.getElementById('encPhotoPreview');
+  const placeholder = document.getElementById('encPhotoPlaceholder');
   try{
     const dataUrl = await encComprimirImagem(file);
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
     const nome = 'encnc-' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
     const resp = await uploadArquivoServidor(nome, 'image/jpeg', dataUrl);
     encFotoAtual = { url: resp.url, path: resp.path };
   }catch(err){
     alert('Não foi possível enviar a foto: ' + err.message);
+    preview.style.display = 'none';
+    placeholder.style.display = 'flex';
   }
 });
 
@@ -3257,9 +3438,18 @@ function encResetForm(){
   document.getElementById('formEmailNc').reset();
   encFotoAtual = null;
   encGravAtual = null;
-  document.querySelectorAll('#encGravRow [data-grav]').forEach(b=>b.classList.remove('btn-accent'));
+  document.querySelectorAll('#encGravRow [data-grav]').forEach(o=>{
+    o.classList.remove('selected');
+    o.style.background = '';
+    o.style.borderColor = '';
+    o.style.color = '';
+  });
+  document.getElementById('encPhotoPreview').style.display = 'none';
+  document.getElementById('encPhotoPlaceholder').style.display = 'flex';
   encPopularCodigos(null);
 }
+document.getElementById('encBtnLimpar').addEventListener('click', encResetForm);
+
 
 function encGerarToken(){
   if(window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g,'');
@@ -3301,7 +3491,8 @@ document.getElementById('formEmailNc').addEventListener('submit', async (e)=>{
     email, cc, prazo,
     status: 'Em andamento',
     approvalToken: encGerarToken(),
-    tokenUsedAt: null, decision: null, decisionComment: null, decisionAt: null
+    tokenUsedAt: null, decision: null, decisionComment: null, decisionAt: null,
+    emailFalhou: false, emailErro: null, falhaTratada: false, falhaTratadaComentario: null, falhaTratadaEm: null
   };
 
   STATE.emailnc.entries.unshift(entry);
@@ -3312,6 +3503,9 @@ document.getElementById('formEmailNc').addEventListener('submit', async (e)=>{
       await encEnviarEmail(entry);
       alert('Tratativa salva e e-mail enviado ao destinatário principal.');
     }catch(err){
+      entry.emailFalhou = true;
+      entry.emailErro = err.message;
+      await saveState();
       alert('Tratativa salva, mas o e-mail não pôde ser enviado: ' + err.message);
     }
   }else{
@@ -3460,11 +3654,11 @@ function encRenderStats(){
   const recorrentes = encRecorrenciaPorFrota(list);
   const el = document.getElementById('statsEmailNc');
   el.innerHTML =
-    '<div class="stat"><div class="num">'+list.length+'</div><div class="lbl">Total</div></div>' +
-    '<div class="stat warn"><div class="num">'+c['Em andamento']+'</div><div class="lbl">Em andamento</div></div>' +
-    '<div class="stat ok"><div class="num">'+c['Concluído']+'</div><div class="lbl">Concluídas</div></div>' +
-    '<div class="stat danger"><div class="num">'+vencidas+'</div><div class="lbl">Vencidas</div></div>' +
-    '<div class="stat warn"><div class="num">'+Object.keys(recorrentes).length+'</div><div class="lbl">Recorrência</div></div>';
+    '<div class="enc-stat"><div class="enc-num">'+list.length+'</div><div class="enc-lbl">Total</div></div>' +
+    '<div class="enc-stat andamento"><div class="enc-num">'+c['Em andamento']+'</div><div class="enc-lbl">Em andamento</div></div>' +
+    '<div class="enc-stat concluido"><div class="enc-num">'+c['Concluído']+'</div><div class="enc-lbl">Concluídas</div></div>' +
+    '<div class="enc-stat vencido"><div class="enc-num">'+vencidas+'</div><div class="enc-lbl">Vencidas</div></div>' +
+    '<div class="enc-stat recorrencia"><div class="enc-num">'+Object.keys(recorrentes).length+'</div><div class="enc-lbl">Recorrência</div></div>';
 }
 
 const ENC_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -3540,20 +3734,18 @@ function encRenderPainel(){
 });
 
 function encClasseGrav(g){
-  if(g==='Gravíssima') return 'GRAVISSIMA';
-  if(g==='Grave') return 'GRAVE';
-  return 'LEVE';
+  return g; // usada direto como atributo de dados na classe .enc-badge
 }
 function encBadgeStatus(t){
   const overdue = encIsOverdue(t);
   const map = {
-    'Em andamento': ['rgba(232,163,61,.18)', '#e8a33d', 'Em andamento'],
-    'Concluído': ['rgba(62,207,142,.18)', '#3ecf8e', 'Concluído'],
-    'Vencido': ['rgba(239,91,91,.18)', '#ef5b5b', 'Vencido']
+    'Em andamento': 'status-andamento',
+    'Concluído': 'status-concluido',
+    'Vencido': 'status-vencido'
   };
-  const [bg,color,label] = map[t.status] || map['Em andamento'];
-  let html = `<span class="mini-badge" style="background:${bg};color:${color}">${label}</span>`;
-  if(overdue) html += ` <span class="mini-badge" style="background:rgba(239,91,91,.18);color:#ef5b5b">Prazo estourado</span>`;
+  const classe = map[t.status] || 'status-andamento';
+  let html = `<span class="enc-badge ${classe}">${escapeHtml(t.status)}</span>`;
+  if(overdue) html += ` <span class="enc-badge status-vencido">Prazo estourado</span>`;
   return html;
 }
 
@@ -3572,41 +3764,55 @@ function encRenderLista(){
 
   const cont = document.getElementById('encLista');
   if(list.length === 0){
-    cont.innerHTML = '<div class="nc-empty">Nenhuma tratativa encontrada.</div>';
+    cont.innerHTML = '<div class="enc-empty">Nenhuma tratativa encontrada.</div>';
     return;
   }
 
   cont.innerHTML = list.map(t=>{
     const decisao = t.decision === 'aprovado' ? '✓ confirmado como feito' : t.decision === 'reprovado' ? '✕ confirmado como não feito' : (t.email ? 'Aguardando resposta do destinatário' : '');
+    const thumb = (t.foto && t.foto.url)
+      ? `<img class="enc-thumb" src="${t.foto.url}" alt="">`
+      : `<div class="enc-thumb enc-empty-thumb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3"/></svg></div>`;
+    let avisoFalha = '';
+    if(t.emailFalhou && !t.falhaTratada){
+      avisoFalha = `<div class="enc-li-meta" style="color:#D6564C;"><span>⚠ Falha ao enviar e-mail: ${escapeHtml(t.emailErro||'motivo desconhecido')}</span></div>`;
+    } else if(t.falhaTratada){
+      avisoFalha = `<div class="enc-li-meta" style="color:#93A0B0;"><span>✓ Falha de envio tratada em ${fmtData((t.falhaTratadaEm||'').slice(0,10))}${t.falhaTratadaComentario ? ' — "'+escapeHtml(t.falhaTratadaComentario)+'"' : ''}</span></div>`;
+    }
     return `
-    <div class="nc-card" data-id="${t.id}">
-      <div class="nc-card-head">
-        <div class="nc-card-head-left">
-          <span class="grav-badge ${encClasseGrav(t.gravidade)}">${escapeHtml(t.gravidade)}${t.codigo ? ' · '+escapeHtml(t.codigo) : ''}</span>
+    <div class="enc-list-item" data-id="${t.id}">
+      ${thumb}
+      <div class="enc-li-main">
+        <div class="enc-li-top">
+          <span class="enc-badge ${encClasseGrav(t.gravidade)}">${escapeHtml(t.gravidade)}${t.codigo ? ' · '+escapeHtml(t.codigo) : ''}</span>
           ${encBadgeStatus(t)}
+          ${t.emailFalhou && !t.falhaTratada ? '<span class="enc-badge status-vencido">Falha no envio</span>' : ''}
         </div>
-        <div class="nc-actions">
-          <select class="btn btn-sm" data-enc-status="${t.id}">
-            <option ${t.status==='Em andamento'?'selected':''}>Em andamento</option>
-            <option ${t.status==='Concluído'?'selected':''}>Concluído</option>
-            <option ${t.status==='Vencido'?'selected':''}>Vencido</option>
-          </select>
-          <button class="btn btn-sm" data-enc-pdf="${t.id}">PDF</button>
-          ${t.email ? `<button class="btn btn-sm" data-enc-reenviar="${t.id}">Reenviar e-mail</button>` : ''}
-          <button class="btn btn-sm btn-danger" data-enc-excluir="${t.id}">Excluir</button>
+        <p class="enc-li-title">${escapeHtml(t.descricao)}</p>
+        <div class="enc-li-meta">
+          <span>Supervisor: ${escapeHtml(t.supervisor)||'—'}</span>
+          <span>Encarregado: ${escapeHtml(t.encarregado)||'—'}</span>
+          <span>Lançado por: ${escapeHtml(t.lancadoPor)||'—'}</span>
+          ${t.frota ? `<span>Frota: ${escapeHtml(t.frota)}</span>` : ''}
+          ${t.placa ? `<span>Placa: ${escapeHtml(t.placa)}</span>` : ''}
+          <span>Prazo: ${t.prazo ? fmtData(t.prazo) : '—'}</span>
+          ${decisao ? `<span>${decisao}</span>` : ''}
+        </div>
+        ${avisoFalha}
+      </div>
+      <div class="enc-li-actions">
+        <select class="enc-btn enc-btn-sm" data-enc-status="${t.id}">
+          <option ${t.status==='Em andamento'?'selected':''}>Em andamento</option>
+          <option ${t.status==='Concluído'?'selected':''}>Concluído</option>
+          <option ${t.status==='Vencido'?'selected':''}>Vencido</option>
+        </select>
+        <div class="enc-row">
+          <button class="enc-btn enc-btn-sm" data-enc-pdf="${t.id}">PDF</button>
+          ${t.email ? `<button class="enc-btn enc-btn-sm" data-enc-reenviar="${t.id}">Reenviar e-mail</button>` : ''}
+          ${t.emailFalhou && !t.falhaTratada ? `<button class="enc-btn enc-btn-sm" data-enc-falha-tratada="${t.id}">Marcar falha como tratada</button>` : ''}
+          <button class="enc-btn enc-btn-sm enc-btn-danger" data-enc-excluir="${t.id}">Excluir</button>
         </div>
       </div>
-      <div class="nc-desc">${escapeHtml(t.descricao)}</div>
-      <div class="nc-meta">
-        <span><b>Supervisor:</b> ${escapeHtml(t.supervisor)||'—'}</span>
-        <span><b>Encarregado:</b> ${escapeHtml(t.encarregado)||'—'}</span>
-        <span><b>Lançado por:</b> ${escapeHtml(t.lancadoPor)||'—'}</span>
-        ${t.frota ? `<span><b>Frota:</b> ${escapeHtml(t.frota)}</span>` : ''}
-        ${t.placa ? `<span><b>Placa:</b> ${escapeHtml(t.placa)}</span>` : ''}
-        <span><b>Prazo:</b> ${t.prazo ? fmtData(t.prazo) : '—'}</span>
-        ${decisao ? `<span>${decisao}</span>` : ''}
-      </div>
-      ${t.foto && t.foto.url ? `<div class="nc-card-photos"><img src="${t.foto.url}" alt=""></div>` : ''}
     </div>`;
   }).join('');
 
@@ -3633,14 +3839,29 @@ function encRenderLista(){
         if(t.tokenUsedAt){
           t.approvalToken = encGerarToken();
           t.tokenUsedAt = null; t.decision = null; t.decisionComment = null; t.decisionAt = null;
-          await saveState();
         }
         await encEnviarEmail(t);
+        t.emailFalhou = false; t.emailErro = null;
+        await saveState();
         alert('E-mail reenviado.');
       }catch(err){
+        t.emailFalhou = true; t.emailErro = err.message; t.falhaTratada = false;
+        await saveState();
         alert('Não foi possível reenviar o e-mail: ' + err.message);
       }
       btn.disabled = false; btn.textContent = 'Reenviar e-mail';
+      renderEmailNc();
+    });
+  });
+  cont.querySelectorAll('[data-enc-falha-tratada]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const t = STATE.emailnc.entries.find(x=>x.id===btn.dataset.encFalhaTratada);
+      const comentario = prompt('Como essa falha de envio foi resolvida? (opcional)', '');
+      if(comentario === null) return; // cancelou
+      t.falhaTratada = true;
+      t.falhaTratadaComentario = comentario.trim() || null;
+      t.falhaTratadaEm = new Date().toISOString();
+      await saveState();
       renderEmailNc();
     });
   });
