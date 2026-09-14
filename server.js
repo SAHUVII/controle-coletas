@@ -146,9 +146,12 @@ function lerCorpoFormulario(req) {
 // Usa a API HTTP da Brevo em vez de SMTP porque o Render bloqueia portas
 // SMTP (25/465/587) de saida no plano gratuito.
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 async function enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename, attachments }) {
   if (!BREVO_API_KEY) throw new Error('BREVO_API_KEY nao configurada.');
   if (!FROM_EMAIL) throw new Error('FROM_EMAIL nao configurado.');
+  if (!to || !EMAIL_REGEX.test(to)) throw new Error('O e-mail do destinatario principal e invalido: "' + to + '".');
 
   const body = {
     sender: { name: FROM_NAME, email: FROM_EMAIL },
@@ -156,7 +159,15 @@ async function enviarEmailBrevo({ to, cc, subject, html, pdfBase64, filename, at
     subject,
     htmlContent: html
   };
-  if (cc && cc.length) body.cc = cc.map((email) => ({ email }));
+
+  // e-mails em copia invalidos sao ignorados (em vez de travar o envio inteiro) --
+  // um unico endereco mal formatado nao pode impedir que o destinatario principal receba.
+  if (cc && cc.length) {
+    const ccValidos = cc.filter((email) => EMAIL_REGEX.test(email));
+    const ccInvalidos = cc.filter((email) => !EMAIL_REGEX.test(email));
+    if (ccInvalidos.length) console.warn('E-mails em copia ignorados por serem invalidos:', ccInvalidos);
+    if (ccValidos.length) body.cc = ccValidos.map((email) => ({ email }));
+  }
 
   const listaAnexos = Array.isArray(attachments) && attachments.length
     ? attachments
