@@ -213,6 +213,10 @@
     padding:7px 9px;border-radius:6px;font-family:inherit;font-size:13.5px;
     color-scheme:dark;
   }
+  .mini-table select{
+    width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:7px 9px;border-radius:6px;font-family:inherit;font-size:13.5px;
+  }
   .mini-table input[type=number]{width:90px;}
   .mini-table .col-acao{width:40px;text-align:center;}
 
@@ -223,6 +227,10 @@
     background:var(--bg);border:1px solid var(--border);color:var(--text);
     padding:8px 10px;border-radius:6px;font-family:inherit;font-size:13.5px;
     color-scheme:dark;
+  }
+  .add-linha-form select{
+    background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:8px 10px;border-radius:6px;font-family:inherit;font-size:13.5px;
   }
   .add-linha-form input[name=quantidade]{width:100px;}
   #icTabela input{width:100%;}
@@ -731,7 +739,10 @@
       </div>
       <div class="campo">
         <label>Horário</label>
-        <input type="text" id="icNovoHorario" placeholder="ex.: 07 AS 12">
+        <select id="icNovoHorario">
+          <option value="07 AS 12">07 AS 12</option>
+          <option value="13 AS 17">13 AS 17</option>
+        </select>
       </div>
       <div class="campo">
         <label>Netmaster</label>
@@ -2243,7 +2254,12 @@ function renderInspecoesClick(){
       <td><input type="text" class="ic-campo" data-campo="frota" value="${escapeHtml(e.frota)}"></td>
       <td><input type="date" class="ic-campo" data-campo="dia" value="${e.dia||''}"></td>
       <td><input type="date" class="ic-campo" data-campo="dataLancada" value="${e.dataLancada||''}"></td>
-      <td><input type="text" class="ic-campo" data-campo="horario" value="${escapeHtml(e.horario||'')}"></td>
+      <td>
+        <select class="ic-campo" data-campo="horario">
+          <option value="07 AS 12" ${e.horario==='07 AS 12'?'selected':''}>07 AS 12</option>
+          <option value="13 AS 17" ${e.horario==='13 AS 17'?'selected':''}>13 AS 17</option>
+        </select>
+      </td>
       <td><input type="text" class="ic-campo" data-campo="netmaster" value="${escapeHtml(e.netmaster||'')}"></td>
       <td><input type="text" class="ic-campo" data-campo="click" value="${escapeHtml(e.click||'')}"></td>
       <td class="col-acao" style="display:flex;gap:4px;align-items:center;">
@@ -2298,7 +2314,7 @@ document.getElementById('btnIcAdd').addEventListener('click', async ()=>{
   document.getElementById('icNovaFrota').value = '';
   document.getElementById('icNovoDia').value = '';
   document.getElementById('icNovaDataLancada').value = '';
-  document.getElementById('icNovoHorario').value = '';
+  document.getElementById('icNovoHorario').value = '07 AS 12';
   document.getElementById('icNovoNetmaster').value = '';
   document.getElementById('icNovoClick').value = '';
   await saveState();
