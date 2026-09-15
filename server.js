@@ -77,6 +77,16 @@ function estaAutenticado(req) {
   return sessaoValida(cookies.sessao);
 }
 
+function usuarioDaSessao(req) {
+  const cookies = lerCookies(req);
+  const cookieValue = cookies.sessao;
+  if (!sessaoValida(cookieValue)) return null;
+  const idx = cookieValue.lastIndexOf('.');
+  const valor = cookieValue.slice(0, idx);
+  const [usuario] = valor.split('|');
+  return usuario || null;
+}
+
 function criarCookieSessao(usuario) {
   const expira = Date.now() + SESSION_MAX_AGE * 1000;
   const valor = `${usuario}|${expira}`;
@@ -479,6 +489,12 @@ const server = http.createServer(async (req, res) => {
       console.error(e);
       sendJSON(res, 500, { error: 'Falha ao ler dados do Supabase' });
     }
+    return;
+  }
+
+  if (urlPath === '/api/usuario' && req.method === 'GET') {
+    if (!autenticado) { sendJSON(res, 401, { error: 'Nao autenticado' }); return; }
+    sendJSON(res, 200, { usuario: usuarioDaSessao(req) });
     return;
   }
 
