@@ -1015,6 +1015,9 @@
         <p class="panel-sub" style="margin:2px 0 0;">Inspeções, ações imediatas/corretivas e evidências fotográficas.</p>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-sm" id="btnNcBackup" title="Baixa um arquivo .json com todas as não conformidades (com anexos)">Baixar backup</button>
+        <button class="btn btn-sm" id="btnNcRestaurar" title="Carrega um arquivo de backup e devolve as não conformidades ao app">Restaurar backup</button>
+        <input type="file" id="ncRestaurarArquivo" accept=".json,application/json" style="display:none">
         <button class="btn btn-sm" id="btnMigrarAnexos" title="Move fotos, vídeos e PDFs antigos para o armazenamento de arquivos, deixando o app mais rápido">Migrar anexos antigos</button>
         <button class="btn btn-accent" id="btnNovaNC">+ Nova NC</button>
       </div>
@@ -2325,6 +2328,46 @@ document.querySelectorAll('#drawer .drawer-item.tab-btn').forEach(b=>{
     document.getElementById('userNomeDrawer').textContent = nome;
   }catch(e){}
 })();
+
+
+/* ===== backup / restauração das Não Conformidades ===== */
+document.getElementById('btnNcBackup').addEventListener('click', ()=>{
+  const payload = { tipo:'backup-naoconformidades', geradoEm:new Date().toISOString(), faseBradleyManual:STATE.naoconformidades.faseBradleyManual, entries:STATE.naoconformidades.entries };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'nao-conformidades-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('btnNcRestaurar').addEventListener('click', ()=> document.getElementById('ncRestaurarArquivo').click());
+document.getElementById('ncRestaurarArquivo').addEventListener('change', async (ev)=>{
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if(!file) return;
+  try{
+    const data = JSON.parse(await file.text());
+    const lista = Array.isArray(data) ? data : data.entries;
+    if(!Array.isArray(lista)) throw new Error('formato');
+    const porId = new Map(STATE.naoconformidades.entries.map(e=>[e.id, e]));
+    let novas = 0, atualizadas = 0;
+    lista.forEach(e=>{
+      const item = Object.assign({fotos:[], videos:[], documentos:[]}, e, {id: e.id || newId()});
+      if(porId.has(item.id)){
+        const idx = STATE.naoconformidades.entries.findIndex(x=>x.id===item.id);
+        STATE.naoconformidades.entries[idx] = item; atualizadas++;
+      }else{
+        STATE.naoconformidades.entries.push(item); novas++;
+      }
+    });
+    if(data.faseBradleyManual !== undefined && data.faseBradleyManual !== null) STATE.naoconformidades.faseBradleyManual = data.faseBradleyManual;
+    await saveState();
+    renderNaoConf();
+    alert('Backup restaurado: '+novas+' NC(s) adicionada(s) e '+atualizadas+' atualizada(s). Nada foi apagado.');
+  }catch(err){
+    alert('Não consegui ler esse arquivo. Use um backup gerado pelo botão "Baixar backup".');
+  }
+});
 
 document.getElementById('btnExport').addEventListener('click', exportarCSV);
 document.getElementById('btnAdd').addEventListener('click', adicionarVeiculo);
